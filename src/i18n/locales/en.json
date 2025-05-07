@@ -1,0 +1,65 @@
+{
+  "app": {
+    "title": "Project Fat Loss",
+    "tabs": {
+      "day": "Day"
+    }
+  },
+  "nav": {
+    "workout": "Workout",
+    "history": "History",
+    "weight": "Weight"
+  },
+  "workout": {
+    "start": "Start workout",
+    "equipment": "Equipment",
+    "sets": "Sets",
+    "nextExercise": "Next exercise",
+    "startSet": "Start set",
+    "nextSet": "Next set",
+    "finish": "Finish",
+    "pause": "Pause",
+    "resumeIn": "Resume in",
+    "calories": "Calories"
+  },
+  "summary": {
+    "title": "Workout Summary",
+    "caloriesBurned": "Calories burned",
+    "exercisesCompleted": "Exercises completed",
+    "weightLifted": "Weight lifted",
+    "save": "Save",
+    "close": "Close"
+  },
+  "stats": {
+    "title": "Statistics",
+    "totalCalories": "Total calories burned",
+    "totalWorkouts": "Number of workouts",
+    "totalWeight": "Total weight lifted",
+    "lastWorkout": "Last workout",
+    "topExercises": "Top exercises"
+  },
+  "calendar": {
+    "title": "Workout Calendar",
+    "noWorkouts": "No workouts on this day"
+  },
+  "weight": {
+    "title": "Weight Tracking",
+    "addNew": "Add new weight",
+    "weightKg": "Weight (kg)",
+    "notes": "Notes (optional)",
+    "add": "Add",
+    "currentWeight": "Current weight",
+    "evolution": "Progress",
+    "min": "Min",
+    "max": "Max",
+    "chart": "Weight evolution",
+    "history": "History",
+    "noData": "No weight records yet",
+    "startTracking": "Use the form above to start tracking your weight"
+  },
+  "language": {
+    "select": "Language",
+    "fr": "French",
+    "en": "English"
+  }
+}

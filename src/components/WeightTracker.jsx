@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer 
@@ -13,6 +14,7 @@ import {
 } from '../services/WeightStorage';
 
 function WeightTracker() {
+  const { t, i18n } = useTranslation();
   const [weightRecords, setWeightRecords] = useState([]);
   const [newWeight, setNewWeight] = useState('');
   const [notes, setNotes] = useState('');
@@ -45,7 +47,7 @@ function WeightTracker() {
       const weightValue = parseFloat(newWeight.replace(',', '.'));
       
       if (isNaN(weightValue) || weightValue <= 0) {
-        setError('Veuillez entrer un poids valide');
+        setError(t('weight.invalidWeight'));
         return;
       }
       
@@ -58,12 +60,12 @@ function WeightTracker() {
       // Réinitialiser le formulaire
       setNewWeight('');
       setNotes('');
-      setSuccess('Poids enregistré avec succès !');
+      setSuccess(t('weight.recordSaved'));
       
       // Effacer le message de succès après 3 secondes
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError(err.message || 'Erreur lors de l\'enregistrement du poids');
+      setError(err.message || t('weight.errorSaving'));
     }
   };
   
@@ -72,10 +74,10 @@ function WeightTracker() {
     try {
       deleteWeightRecord(id);
       loadWeightData();
-      setSuccess('Enregistrement supprimé avec succès !');
+      setSuccess(t('weight.recordDeleted'));
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Erreur lors de la suppression de l\'enregistrement');
+      setError(t('weight.errorDeleting'));
     }
   };
   
@@ -89,18 +91,19 @@ function WeightTracker() {
   
   // Formater la date pour l'affichage
   const formatDate = (dateString) => {
-    return format(new Date(dateString), 'dd MMMM yyyy', { locale: fr });
+    const locale = i18n.language === 'fr' ? fr : undefined;
+    return format(new Date(dateString), 'dd MMMM yyyy', { locale });
   };
   
   return (
     <div className="weight-tracker">
-      <h2>Suivi de Poids</h2>
+      <h2>{t('weight.title')}</h2>
       
       {/* Formulaire d'ajout de poids */}
       <div className="weight-form-container">
         <form onSubmit={handleAddWeight} className="weight-form">
           <div className="form-group">
-            <label htmlFor="weight">Poids (kg):</label>
+            <label htmlFor="weight">{t('weight.weightKg')}:</label>
             <input
               type="number"
               id="weight"
@@ -115,7 +118,7 @@ function WeightTracker() {
           </div>
           
           <div className="form-group">
-            <label htmlFor="notes">Notes (optionnel):</label>
+            <label htmlFor="notes">{t('weight.notes')}:</label>
             <input
               type="text"
               id="notes"
@@ -125,7 +128,7 @@ function WeightTracker() {
             />
           </div>
           
-          <button type="submit" className="add-weight-btn">Ajouter</button>
+          <button type="submit" className="add-weight-btn">{t('weight.add')}</button>
         </form>
         
         {error && <div className="error-message">{error}</div>}
@@ -136,14 +139,14 @@ function WeightTracker() {
       {stats.current && (
         <div className="weight-stats">
           <div className="stat-card current-weight">
-            <div className="stat-title">Poids actuel</div>
+            <div className="stat-title">{t('weight.currentWeight')}</div>
             <div className="stat-value">{stats.current.weight} kg</div>
             <div className="stat-date">{formatDate(stats.current.date)}</div>
           </div>
           
           {stats.initial && stats.current.id !== stats.initial.id && (
             <div className={`stat-card weight-change ${stats.change <= 0 ? 'positive' : 'negative'}`}>
-              <div className="stat-title">Évolution</div>
+              <div className="stat-title">{t('weight.evolution')}</div>
               <div className="stat-value">
                 {stats.change > 0 ? '+' : ''}
                 {stats.change.toFixed(1)} kg
@@ -157,11 +160,11 @@ function WeightTracker() {
           
           <div className="stat-card min-max">
             <div className="min-weight">
-              <span className="stat-label">Min:</span>
+              <span className="stat-label">{t('weight.min')}:</span>
               <span className="stat-value">{stats.lowestRecord.weight} kg</span>
             </div>
             <div className="max-weight">
-              <span className="stat-label">Max:</span>
+              <span className="stat-label">{t('weight.max')}:</span>
               <span className="stat-value">{stats.highestRecord.weight} kg</span>
             </div>
           </div>
@@ -171,7 +174,7 @@ function WeightTracker() {
       {/* Graphique d'évolution */}
       {weightRecords.length > 0 ? (
         <div className="weight-chart">
-          <h3>Évolution du poids</h3>
+          <h3>{t('weight.chart')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
               data={chartData}
@@ -201,15 +204,15 @@ function WeightTracker() {
         </div>
       ) : (
         <div className="no-weight-data">
-          <p>Aucun enregistrement de poids pour le moment.</p>
-          <p>Utilisez le formulaire ci-dessus pour commencer à suivre votre poids.</p>
+          <p>{t('weight.noData')}</p>
+          <p>{t('weight.startTracking')}</p>
         </div>
       )}
       
       {/* Historique des enregistrements */}
       {weightRecords.length > 0 && (
         <div className="weight-history">
-          <h3>Historique</h3>
+          <h3>{t('weight.history')}</h3>
           <div className="weight-records-list">
             {weightRecords.slice().reverse().map(record => (
               <div key={record.id} className="weight-record">

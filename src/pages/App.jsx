@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { days } from '../data';
 import StepWorkout from './StepWorkout';
 import WorkoutCalendar from '../components/WorkoutCalendar';
 import WorkoutStats from '../components/WorkoutStats';
 import WeightTracker from '../components/WeightTracker';
+import LanguageSelector from '../components/LanguageSelector';
 import '../components/WeightTracker.css';
 
 function Tabs({ days, current, setCurrent }) {
+  const { t } = useTranslation();
   return (
     <nav className="tabs">
       {days.map((d, i) => (
@@ -15,7 +18,7 @@ function Tabs({ days, current, setCurrent }) {
           className={"tab" + (i === current ? " active" : "")}
           onClick={() => setCurrent(i)}
         >
-          Jour {i + 1}
+          {t('app.tabs.day')} {i + 1}
         </div>
       ))}
     </nav>
@@ -23,6 +26,7 @@ function Tabs({ days, current, setCurrent }) {
 }
 
 export default function App() {
+  const { t } = useTranslation();
   const [current, setCurrent] = useState(0);
   const [stepMode, setStepMode] = useState(false);
   const [viewMode, setViewMode] = useState('workout'); // 'workout', 'history' ou 'weight'
@@ -58,34 +62,40 @@ export default function App() {
   return (
     <div>
       <header className="app-header">
-        <button className="theme-toggle" onClick={toggleTheme}>
+        <button className="theme-toggle" onClick={toggleTheme} title={darkTheme ? t('theme.light') : t('theme.dark')}>
           {darkTheme ? '☀️' : '🌙'}
         </button>
-        <span className="header-title">Project Fat Loss</span>
+        <span className="header-title">{t('app.title')}</span>
         <div className="header-controls">
           <button 
-            className="view-toggle" 
+            className={`view-toggle ${viewMode === 'workout' ? 'active' : ''}`}
             onClick={() => setViewMode('workout')}
-            title="Mode entraînement"
+            title={t('nav.workout')}
           >
-            🏋️
+            <span className="view-icon">🏋️</span>
+            <span className="view-text">{t('nav.workout')}</span>
           </button>
           <button 
-            className="view-toggle" 
+            className={`view-toggle ${viewMode === 'history' ? 'active' : ''}`}
             onClick={() => setViewMode('history')}
-            title="Historique et statistiques"
+            title={t('nav.history')}
           >
-            📊
+            <span className="view-icon">📊</span>
+            <span className="view-text">{t('nav.history')}</span>
           </button>
           <button 
-            className="view-toggle" 
+            className={`view-toggle ${viewMode === 'weight' ? 'active' : ''}`}
             onClick={() => setViewMode('weight')}
-            title="Suivi de poids"
+            title={t('nav.weight')}
           >
-            ⚖️
+            <span className="view-icon">⚖️</span>
+            <span className="view-text">{t('nav.weight')}</span>
           </button>
         </div>
       </header>
+      
+      {/* Sélecteur de langue */}
+      <LanguageSelector />
       
       {viewMode === 'workout' ? (
         // Mode Entraînement
@@ -94,14 +104,16 @@ export default function App() {
           {!stepMode ? (
             <div className="day-content">
               <h2 style={{ fontSize: '1.1rem', marginBottom: 16 }}>{days[current].title}</h2>
-              <button className="timer-btn" style={{marginBottom:16}} onClick={()=>setStepMode(true)}>Commencer la séance</button>
+              <button className="timer-btn" style={{marginBottom:16}} onClick={()=>setStepMode(true)}>
+                {t('workout.start')}
+              </button>
               {days[current].exercises.map((exo, i) => (
                 <div className="exo-card" key={i}>
                   <div className="exo-header">
                     <span className="exo-title">{exo.name}</span>
                     <span className="exo-series">{exo.sets}</span>
                   </div>
-                  <div className="exo-equip">{exo.equip}</div>
+                  <div className="exo-equip">{t('workout.equipment')}: {exo.equip}</div>
                   <div className="exo-desc">{exo.desc}</div>
                 </div>
               ))}

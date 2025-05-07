@@ -91,6 +91,31 @@ body {
 }
 
 .view-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: auto;
+  min-width: 40px;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.view-toggle.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.view-icon {
+  font-size: 1.3rem;
+}
+
+.view-text {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.view-toggle {
   opacity: 0.7;
   transition: opacity 0.2s, transform 0.2s;
 }
@@ -436,6 +461,93 @@ body {
 /* Styles pour la vue historique */
 .history-content {
   padding: 10px;
+}
+
+/* Sélecteur de langue */
+.language-selector {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 15px;
+  margin: 15px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+}
+
+.language-title {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.language-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.language-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.language-btn.active {
+  background: var(--button-active);
+  font-weight: bold;
+}
+
+.language-flag {
+  font-size: 1.2rem;
+}
+
+/* Amélioration des boutons de navigation */
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 15px 0;
+}
+
+.nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 80px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.nav-button:hover {
+  background: var(--button-active);
+}
+
+.nav-button-icon {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+}
+
+.nav-button-text {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-button.active {
+  background: var(--button-active);
+  font-weight: bold;
 }
 
 /* Responsive updates */

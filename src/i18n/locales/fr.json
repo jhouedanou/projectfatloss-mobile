@@ -1,0 +1,65 @@
+{
+  "app": {
+    "title": "Project Fat Loss",
+    "tabs": {
+      "day": "Jour"
+    }
+  },
+  "nav": {
+    "workout": "Entraînement",
+    "history": "Historique",
+    "weight": "Suivi Poids"
+  },
+  "workout": {
+    "start": "Commencer la séance",
+    "equipment": "Équipement",
+    "sets": "Séries",
+    "nextExercise": "Exercice suivant",
+    "startSet": "Commencer série",
+    "nextSet": "Série suivante",
+    "finish": "Terminer",
+    "pause": "Pause",
+    "resumeIn": "Reprise dans",
+    "calories": "Calories"
+  },
+  "summary": {
+    "title": "Résumé de l'entraînement",
+    "caloriesBurned": "Calories brûlées",
+    "exercisesCompleted": "Exercices terminés",
+    "weightLifted": "Poids soulevé",
+    "save": "Sauvegarder",
+    "close": "Fermer"
+  },
+  "stats": {
+    "title": "Statistiques",
+    "totalCalories": "Total calories brûlées",
+    "totalWorkouts": "Nombre d'entraînements",
+    "totalWeight": "Poids total soulevé",
+    "lastWorkout": "Dernier entraînement",
+    "topExercises": "Meilleurs exercices"
+  },
+  "calendar": {
+    "title": "Calendrier d'entraînements",
+    "noWorkouts": "Aucun entraînement ce jour"
+  },
+  "weight": {
+    "title": "Suivi de Poids",
+    "addNew": "Ajouter un poids",
+    "weightKg": "Poids (kg)",
+    "notes": "Notes (optionnel)",
+    "add": "Ajouter",
+    "currentWeight": "Poids actuel",
+    "evolution": "Évolution",
+    "min": "Min",
+    "max": "Max",
+    "chart": "Évolution du poids",
+    "history": "Historique",
+    "noData": "Aucun enregistrement de poids pour le moment",
+    "startTracking": "Utilisez le formulaire ci-dessus pour commencer à suivre votre poids"
+  },
+  "language": {
+    "select": "Langue",
+    "fr": "Français",
+    "en": "Anglais"
+  }
+}
