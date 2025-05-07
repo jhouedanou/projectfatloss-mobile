@@ -550,6 +550,126 @@ body {
   font-weight: bold;
 }
 
+/* Styles pour la barre de paramètres et le bouton du sélecteur de langue */
+.settings-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 12px;
+  background-color: var(--bg-primary);
+  gap: 10px;
+}
+
+.settings-button {
+  background-color: transparent;
+  border: 1px solid var(--text-tertiary);
+  border-radius: 4px;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.settings-button:hover {
+  background-color: rgba(74, 78, 105, 0.1);
+  transform: translateY(-1px);
+}
+
+.dark-theme .settings-bar {
+  background-color: var(--bg-primary-dark);
+}
+
+.dark-theme .settings-button {
+  border-color: var(--text-tertiary-dark);
+  color: var(--text-tertiary-dark);
+}
+
+.dark-theme .settings-button:hover {
+  background-color: rgba(248, 249, 250, 0.1);
+}
+
+.dark-theme .fat-burner-indicator {
+  background-color: rgba(255, 0, 0, 0.2);
+  color: #ff6b6b;
+}
+
+/* Ajouter des transitions fluides */
+.view-toggle, .tab, .timer-btn, .exo-card {
+  transition: all 0.2s ease;
+}
+
+.view-toggle:hover, .tab:hover, .timer-btn:hover {
+  transform: translateY(-2px);
+}
+
+.exo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Animation pour le FloatingCalorieCounter en mode Fat Burner */
+.floating-calories.fat-burner {
+  background: linear-gradient(135deg, #ff9d00, #ff0000);
+  box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
+}
+
+/* Styles pour le mode Fat Burner */
+.fat-burner-banner {
+  background: linear-gradient(135deg, #ff9d00, #ff0000);
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(255, 0, 0, 0.2);
+  animation: pulse-fire 2s infinite;
+}
+
+.fat-burner-icon {
+  font-size: 1.5rem;
+}
+
+.fat-burner-text {
+  font-size: 1rem;
+}
+
+.fat-burner-indicator {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: var(--text-primary);
+  text-align: center;
+  padding: 5px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  animation: pulse-fire 2s infinite;
+}
+
+@keyframes pulse-fire {
+  0% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.8;
+  }
+}
+
+.active-mode {
+  background-color: rgba(255, 0, 0, 0.2) !important;
+  border-color: #ff0000 !important;
+  color: #ff0000 !important;
+  font-weight: bold;
+}
+
 /* Responsive updates */
 @media (max-width: 600px) {
   .app-header {

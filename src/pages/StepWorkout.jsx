@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getWorkoutPlan } from '../services/WorkoutCustomization';
 import { days } from '../data';
 import ExoIcon, { EquipIcon } from '../components/ExoIcon';
 import ProgressBar from '../components/ProgressBar';
@@ -21,10 +22,11 @@ function parseSets(sets) {
   return m ? parseInt(m[1], 10) : 1;
 }
 
-function Pause({ onEnd, onSkip, isExerciseTransition }) {
+function Pause({ onEnd, onSkip, isExerciseTransition, reducedTime }) {
   // isExerciseTransition = true signifie qu'on est dans une pause entre exercices (inactif)
   // isExerciseTransition = false signifie qu'on est dans une pause normale (bouton actif)
-  const [time, setTime] = useState(15); // 15 secondes de repos pour tous les types de pause
+  const defaultTime = reducedTime ? 10 : 15; // 10 secondes en mode Fat Burner, 15 secondes sinon
+  const [time, setTime] = useState(defaultTime); // 15 secondes de repos pour tous les types de pause
   
   useEffect(() => {
     if (time === 0) {
@@ -47,7 +49,7 @@ function Pause({ onEnd, onSkip, isExerciseTransition }) {
   
   return (
     <div style={{textAlign:'center',marginTop:40}}>
-      <h2>Pause</h2>
+      <h2>Pause {reducedTime && "Rapide"}</h2>
       <div style={{fontSize:40,margin:20}}>{time}s</div>
       <p>Prépare-toi pour {isExerciseTransition ? "le prochain exercice" : "la prochaine série"} !</p>
       <button 
@@ -76,7 +78,7 @@ function CalorieDisplay({ calories, visible }) {
 }
 
 // Component for floating calorie counter
-function FloatingCalorieCounter({ calories, exerciseCompleted }) {
+function FloatingCalorieCounter({ calories, exerciseCompleted, fatBurnerMode }) {
   const [pulse, setPulse] = useState(false);
   
   // Effet pour déclencher l'animation de pouls quand les calories changent
@@ -97,7 +99,7 @@ function FloatingCalorieCounter({ calories, exerciseCompleted }) {
 }
 
 // Component for end of day summary modal
-function EndOfDayModal({ day, totalCalories, onClose, onSaveWorkout }) {
+function EndOfDayModal({ day, totalCalories, onClose, onSaveWorkout, fatBurnerMode }) {
   // Fonction pour calculer le poids total en fonction de l'équipement
   function calculateWeight(equipment) {
     // Extraire les nombres de la chaîne d'équipement (ex: "Haltères 15 kg" -> 15)
@@ -135,7 +137,8 @@ function EndOfDayModal({ day, totalCalories, onClose, onSaveWorkout }) {
         name: exercise.name,
         sets: parseSets(exercise.sets),
         weightLifted: calculateWeight(exercise.equip)
-      }))
+      })),
+      fatBurnerMode: fatBurnerMode
     };
     
     // Sauvegarder dans le stockage local
@@ -166,7 +169,7 @@ function EndOfDayModal({ day, totalCalories, onClose, onSaveWorkout }) {
   );
 }
 
-function StepSet({ exo, setNum, totalSets, onDone, onCaloriesBurned }) {
+function StepSet({ exo, setNum, totalSets, onDone, onCaloriesBurned, fatBurnerMode }) {
   const [timer, setTimer] = useState(exo.timer ? (exo.duration || 30) : null); // 30 secondes par défaut
   const [running, setRunning] = useState(false);
   const [showCalories, setShowCalories] = useState(false);
@@ -266,7 +269,7 @@ function StepSet({ exo, setNum, totalSets, onDone, onCaloriesBurned }) {
 
 import { saveWorkout } from '../services/WorkoutStorage';
 
-export default function StepWorkout({ dayIndex, onBack, onComplete }) {
+export default function StepWorkout({ dayIndex, onBack, onComplete, fatBurnerMode }) {
   const [step, setStep] = useState(0); // exercice
   const [pause, setPause] = useState(false);
   const [isExerciseTransition, setIsExerciseTransition] = useState(false); // Indique si on est dans une transition entre exercices
@@ -276,10 +279,17 @@ export default function StepWorkout({ dayIndex, onBack, onComplete }) {
   const [workoutCompleted, setWorkoutCompleted] = useState(false); // Nouvel état pour suivre si l'entraînement est terminé
   const isFirstRender = useRef(true);
   
-  const day = days[dayIndex];
+  // Utiliser le programme d'entraînement personnalisé
+  const workoutPlan = getWorkoutPlan();
+  const day = workoutPlan[dayIndex];
   const total = day.exercises.length;
   const exo = day.exercises[step];
-  const totalSets = parseSets(exo.sets);
+  const totalSets = fatBurnerMode 
+    ? Math.max(1, Math.floor(parseSets(exo.sets) / 2)) // Réduire de moitié le nombre de séries en mode Fat Burner (minimum 1)
+    : parseSets(exo.sets);
+  
+  // En mode Fat Burner, on augmente le facteur de calories brûlées
+  const fatBurnerCalorieFactor = fatBurnerMode ? 1.5 : 1;
   
   useEffect(()=>{
     setStep(0);
@@ -321,17 +331,19 @@ export default function StepWorkout({ dayIndex, onBack, onComplete }) {
   };
   
   const handleCaloriesBurned = (calories) => {
-    setTotalCaloriesBurned(prev => prev + calories);
+    // Appliquer le facteur de calories du mode Fat Burner
+    const adjustedCalories = Math.round(calories * fatBurnerCalorieFactor);
+    setTotalCaloriesBurned(prev => prev + adjustedCalories);
   };
   
   const next = () => {
     if (setNum < totalSets - 1) {
       setSetNum(s => s + 1);
       setPause(true);
-      setIsExerciseTransition(false); // Pause normale entre séries (30s, bouton actif)
+      setIsExerciseTransition(fatBurnerMode ? true : false); // En mode Fat Burner, on réduit le temps de pause entre les séries
     } else if (step < total - 1) {
       setPause(true);
-      setIsExerciseTransition(true); // Pause forcée entre exercices (10s, bouton inactif)
+      setIsExerciseTransition(true); // Pause forcée entre exercices
       setSetNum(0);
       setStep(s => s + 1);
     } else {
@@ -347,14 +359,28 @@ export default function StepWorkout({ dayIndex, onBack, onComplete }) {
   };
   
   const handleSaveWorkout = (workoutData) => {
+    // Ajouter l'information sur le mode Fat Burner
+    const workoutDataWithMode = {
+      ...workoutData,
+      fatBurnerMode: fatBurnerMode
+    };
+    
     // Appeler le callback pour enregistrer les données
-    onComplete && onComplete(workoutData);
+    onComplete && onComplete(workoutDataWithMode);
   };
   
   return (
     <div className="day-content">
       <button className="timer-btn" style={{marginBottom:10}} onClick={onBack}>Retour</button>
       <h2 style={{fontSize:'1.1rem',marginBottom:8}}>{day.title}</h2>
+      
+      {/* Afficher une bannière Fat Burner si nécessaire */}
+      {fatBurnerMode && (
+        <div className="fat-burner-indicator">
+          🔥 Mode Fat Burner actif ! 🔥
+        </div>
+      )}
+      
       <ProgressBar current={step+1} total={total} />
       <div style={{textAlign:'right',marginBottom:8}}>{step+1} / {total}</div>
       
@@ -364,13 +390,18 @@ export default function StepWorkout({ dayIndex, onBack, onComplete }) {
       </div>
       
       {/* Floating calorie counter */}
-      <FloatingCalorieCounter calories={totalCaloriesBurned} exerciseCompleted={workoutCompleted} />
+      <FloatingCalorieCounter 
+        calories={totalCaloriesBurned} 
+        exerciseCompleted={workoutCompleted}
+        fatBurnerMode={fatBurnerMode} 
+      />
       
       {pause ? (
         <Pause 
           onEnd={handlePauseEnd} 
           onSkip={handleSkipPause} 
           isExerciseTransition={isExerciseTransition}
+          reducedTime={fatBurnerMode}
         />
       ) : (
         <StepSet 
@@ -378,7 +409,8 @@ export default function StepWorkout({ dayIndex, onBack, onComplete }) {
           setNum={setNum} 
           totalSets={totalSets} 
           onDone={next}
-          onCaloriesBurned={handleCaloriesBurned} 
+          onCaloriesBurned={handleCaloriesBurned}
+          fatBurnerMode={fatBurnerMode}
         />
       )}
       
@@ -389,6 +421,7 @@ export default function StepWorkout({ dayIndex, onBack, onComplete }) {
           totalCalories={totalCaloriesBurned} 
           onClose={handleCloseEndOfDayModal}
           onSaveWorkout={handleSaveWorkout}
+          fatBurnerMode={fatBurnerMode}
         />
       )}
     </div>

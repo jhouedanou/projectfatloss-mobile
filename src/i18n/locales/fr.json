@@ -20,7 +20,8 @@
     "finish": "Terminer",
     "pause": "Pause",
     "resumeIn": "Reprise dans",
-    "calories": "Calories"
+    "calories": "Calories",
+    "fatBurnerSets": "{{sets}} (réduit)"
   },
   "summary": {
     "title": "Résumé de l'entraînement",
@@ -57,9 +58,55 @@
     "noData": "Aucun enregistrement de poids pour le moment",
     "startTracking": "Utilisez le formulaire ci-dessus pour commencer à suivre votre poids"
   },
+  "theme": {
+    "light": "Passer en mode clair",
+    "dark": "Passer en mode sombre"
+  },
   "language": {
     "select": "Langue",
     "fr": "Français",
     "en": "Anglais"
+  },
+  "settings": {
+    "hideLanguage": "Masquer la langue",
+    "showLanguage": "Afficher la langue",
+    "fatBurner": "Mode Fat Burner",
+    "fatBurnerMode": "Activer/désactiver le mode d'urgence Fat Burner",
+    "customize": "Personnaliser",
+    "customizeProgram": "Personnaliser votre programme d'entraînement"
+  },
+  "mode": {
+    "fatBurner": "Mode Fat Burner activé - Séance intense et rapide"
+  },
+  "customizer": {
+    "title": "Personnalisation du Programme",
+    "selectDay": "Choisir un jour",
+    "addExercise": "Ajouter un exercice",
+    "editingExercise": "Modifier l'exercice",
+    "addingExercise": "Ajouter un exercice",
+    "exerciseName": "Nom de l'exercice",
+    "exerciseSets": "Séries",
+    "exerciseEquipment": "Équipement",
+    "exerciseDescription": "Description",
+    "caloriesMin": "Calories min",
+    "caloriesMax": "Calories max",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "resetProgram": "Réinitialiser le programme",
+    "confirmReset": "Êtes-vous sûr de vouloir réinitialiser le programme ? Cette action est irréversible.",
+    "programReset": "Programme réinitialisé avec succès",
+    "exerciseUpdated": "Exercice mis à jour",
+    "exerciseAdded": "Exercice ajouté",
+    "exerciseDeleted": "Exercice supprimé",
+    "errorSaving": "Erreur lors de l'enregistrement",
+    "errorDeleting": "Erreur lors de la suppression",
+    "errorResetting": "Erreur lors de la réinitialisation",
+    "errorRequiredFields": "Veuillez remplir tous les champs obligatoires",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet exercice ?"
+  },
+  "notifications": {
+    "workoutComplete": "Entraînement terminé !",
+    "nextDay": "Prêt pour le Jour {{day}} demain ?",
+    "reminder": "N'oubliez pas votre entraînement aujourd'hui !"
   }
 }
