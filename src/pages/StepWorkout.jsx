@@ -61,10 +61,10 @@ function StepSet({ exo, setNum, totalSets, onDone, onCaloriesBurned }) {
   const [running, setRunning] = useState(false);
   const [showCalories, setShowCalories] = useState(false);
   
-  // Estimate calories per set (calculate average if range is given)
+  // Always use the maximum calories per set value
   const caloriesPerSet = exo.caloriesPerSet ? 
-    Math.round((exo.caloriesPerSet[0] + exo.caloriesPerSet[1]) / 2) : 
-    Math.round(5 + Math.random() * 10); // Fallback if no data provided
+    exo.caloriesPerSet[1] : // Take the maximum value (second value in the array)
+    Math.round(10 + Math.random() * 5); // Increased fallback if no data provided
   
   useEffect(() => {
     if (!exo.timer || !running) return;

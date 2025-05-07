@@ -2,7 +2,7 @@
   "name": "semaine-muscu-mobile",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://VOTRE_USERNAME.github.io/semaine-muscu-mobile",
+  "homepage": "https://jhouedanou.github.io/projectfatloss",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
