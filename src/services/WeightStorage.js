@@ -136,3 +136,16 @@ export const getWeightStats = () => {
     };
   }
 };
+
+/**
+ * Récupère les enregistrements de poids pour la synchronisation
+ * @returns {Array} - Liste complète des enregistrements de poids
+ */
+export const getWeightEntries = () => {
+  try {
+    return getWeightHistory();
+  } catch (error) {
+    console.error('Erreur lors de la récupération des entrées de poids:', error);
+    return [];
+  }
+};

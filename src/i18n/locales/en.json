@@ -73,7 +73,39 @@
     "fatBurner": "Fat Burner Mode",
     "fatBurnerMode": "Enable/disable emergency Fat Burner mode",
     "customize": "Customize",
-    "customizeProgram": "Customize your workout program"
+    "customizeProgram": "Customize your workout program",
+    "sync": "Synchronize"
+  },
+  "auth": {
+    "login": "Login",
+    "loginButton": "Sign in",
+    "loggingIn": "Signing in...",
+    "logout": "Logout",
+    "username": "Username",
+    "password": "Password",
+    "usernamePlaceholder": "Enter your username",
+    "passwordPlaceholder": "Enter your password",
+    "errorRequiredFields": "Please fill in all fields",
+    "errorUnknown": "An error occurred",
+    "loginHint": "Sign in to sync your workout data between different devices.",
+    "welcomeBack": "Welcome back!",
+    "syncReady": "You can now sync your data"
+  },
+  "sync": {
+    "title": "Data Synchronization",
+    "lastSync": "Last synced",
+    "noSync": "No synchronization yet",
+    "upload": "Upload data",
+    "download": "Download data",
+    "uploading": "Uploading...",
+    "downloading": "Downloading...",
+    "uploadSuccess": "Data uploaded successfully ({{date}})",
+    "downloadSuccess": "Data downloaded successfully ({{date}})",
+    "uploadError": "Error uploading data",
+    "downloadError": "Error downloading data",
+    "applyError": "Error applying downloaded data",
+    "noNewData": "No new data to sync",
+    "disclaimer": "Note: In this demo, data is stored locally and simulated as if it were synced with the cloud."
   },
   "mode": {
     "fatBurner": "Fat Burner Mode activated - Intense & quick workout"

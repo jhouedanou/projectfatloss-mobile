@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getWorkoutPlan } from '../services/WorkoutCustomization'; // Importer le service de personnalisation
-import { days } from '../data';
 import StepWorkout from './StepWorkout';
 import WorkoutCalendar from '../components/WorkoutCalendar';
 import WorkoutStats from '../components/WorkoutStats';
 import WeightTracker from '../components/WeightTracker';
 import LanguageSelector from '../components/LanguageSelector';
 import WorkoutCustomizer from '../components/WorkoutCustomizer'; // Importer le composant de personnalisation
+import LoginForm from '../components/LoginForm'; // Importer le formulaire de connexion
+import SyncPanel from '../components/SyncPanel'; // Importer le panneau de synchronisation
+import { getCurrentUser } from '../services/AuthService'; // Importer le service d'authentification
+// Importer les données initiales au cas où le chargement échoue
+import { days as initialWorkoutPlan } from '../data'; 
 import '../components/WeightTracker.css';
 import '../components/WorkoutCustomizer.css'; // Importer les styles CSS
+import '../components/LoginForm.css'; // Importer les styles CSS du formulaire de connexion
+import '../components/SyncPanel.css'; // Importer les styles CSS du panneau de synchronisation
 
 function Tabs({ days, current, setCurrent }) {
   const { t } = useTranslation();
+  // Vérifier si days est défini et non vide
+  if (!days || days.length === 0) {
+    return null; // Ne rien afficher si days est vide
+  }
+  
   return (
     <nav className="tabs">
       {days.map((d, i) => (
@@ -50,24 +61,94 @@ export default function App() {
   // État pour le mode d'urgence "Fat Burner"
   const [fatBurnerMode, setFatBurnerMode] = useState(false);
   
-  // État pour le programme d'entraînement personnalisé
+  // État pour le programme d'entraînement personnalisé, initialiser avec un tableau vide
   const [workoutPlan, setWorkoutPlan] = useState([]);
+  // État de chargement pour indiquer si le plan est prêt
+  const [isLoading, setIsLoading] = useState(true);
   
   // État pour afficher/masquer le customizer
   const [showCustomizer, setShowCustomizer] = useState(false);
   
+  // État pour l'authentification et la synchronisation
+  const [user, setUser] = useState(null);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [showSyncPanel, setShowSyncPanel] = useState(false);
+  
+  // Charger l'utilisateur connecté au démarrage
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+  }, []);
+  
   // Charger le programme d'entraînement personnalisé
   useEffect(() => {
-    const plan = getWorkoutPlan();
-    setWorkoutPlan(plan);
+    try {
+      setIsLoading(true);
+      // Essayer de charger le plan personnalisé
+      const plan = getWorkoutPlan();
+      
+      // Si le plan est vide ou invalide, utiliser le plan initial
+      if (!plan || plan.length === 0) {
+        setWorkoutPlan(initialWorkoutPlan);
+      } else {
+        setWorkoutPlan(plan);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du plan d\'entraînement:', error);
+      // En cas d'erreur, utiliser le plan initial
+      setWorkoutPlan(initialWorkoutPlan);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+  
+  // S'assurer que l'index current est valide
+  useEffect(() => {
+    if (!isLoading && workoutPlan.length > 0 && current >= workoutPlan.length) {
+      setCurrent(0);
+    }
+  }, [workoutPlan, current, isLoading]);
   
   // Rafraîchir le programme quand le customizer est fermé
   const handleCloseCustomizer = () => {
     setShowCustomizer(false);
     // Recharger le programme mis à jour
-    const plan = getWorkoutPlan();
-    setWorkoutPlan(plan);
+    try {
+      const plan = getWorkoutPlan();
+      if (plan && plan.length > 0) {
+        setWorkoutPlan(plan);
+      }
+    } catch (error) {
+      console.error('Erreur lors du rechargement du plan:', error);
+    }
+  };
+  
+  // Gestion du login
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    setShowLoginForm(false);
+    setShowSyncPanel(true); // Afficher le panneau de synchronisation après connexion
+  };
+  
+  // Gestion du logout
+  const handleLogout = () => {
+    setUser(null);
+    setShowSyncPanel(false);
+  };
+  
+  // Gestion de la synchronisation complète
+  const handleSyncComplete = () => {
+    // Recharger les données après synchronisation
+    try {
+      const plan = getWorkoutPlan();
+      if (plan && plan.length > 0) {
+        setWorkoutPlan(plan);
+      }
+    } catch (error) {
+      console.error('Erreur lors du rechargement du plan après synchronisation:', error);
+    }
   };
   
   // Sauvegarder le jour actuel dans localStorage quand il change
@@ -104,8 +185,11 @@ export default function App() {
   };
   
   const moveToNextDay = () => {
-    // Passer au jour suivant en suivant la séquence de 7 jours
-    setCurrent(prev => (prev + 1) % workoutPlan.length);
+    // S'assurer que workoutPlan est chargé et non vide
+    if (workoutPlan && workoutPlan.length > 0) {
+      // Passer au jour suivant en suivant la séquence de 7 jours
+      setCurrent(prev => (prev + 1) % workoutPlan.length);
+    }
     setStepMode(false); // Réinitialiser en mode non-étape
   };
   
@@ -115,7 +199,7 @@ export default function App() {
     console.log('Entraînement terminé:', workoutData);
     
     // Affichage d'une notification si l'API est disponible
-    if ("Notification" in window && Notification.permission === "granted") {
+    if ("Notification" in window && Notification.permission === "granted" && workoutPlan && workoutPlan.length > 0) {
       new Notification(t('notifications.workoutComplete'), {
         body: t('notifications.nextDay', { day: (current + 1) % workoutPlan.length + 1 }),
         icon: '/favicon.ico'
@@ -135,6 +219,19 @@ export default function App() {
       Notification.requestPermission();
     }
   }, []);
+
+  // Afficher un indicateur de chargement si nécessaire
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>{t('app.loading')}</p>
+      </div>
+    );
+  }
+
+  // Vérifier si le plan d'entraînement est disponible
+  const isPlanAvailable = workoutPlan && workoutPlan.length > 0 && current < workoutPlan.length;
 
   return (
     <div>
@@ -198,10 +295,41 @@ export default function App() {
         >
           {t('settings.customize')} ⚙️
         </button>
+        
+        {/* Bouton pour se connecter/synchroniser */}
+        {user ? (
+          <button 
+            className="settings-button sync-toggle-button"
+            onClick={() => setShowSyncPanel(!showSyncPanel)}
+            title={t('settings.sync')}
+          >
+            {t('settings.sync')} ☁️
+          </button>
+        ) : (
+          <button 
+            className="settings-button"
+            onClick={() => setShowLoginForm(true)}
+            title={t('auth.login')}
+          >
+            {t('auth.login')} 🔒
+          </button>
+        )}
       </div>
       
       {/* Sélecteur de langue */}
       {showLanguageSelector && <LanguageSelector />}
+      
+      {/* Formulaire de connexion */}
+      {showLoginForm && <LoginForm onLoginSuccess={handleLoginSuccess} onClose={() => setShowLoginForm(false)} />}
+      
+      {/* Panneau de synchronisation */}
+      {showSyncPanel && user && (
+        <SyncPanel 
+          user={user}
+          onLogout={handleLogout}
+          onSyncComplete={handleSyncComplete}
+        />
+      )}
       
       {/* Customizer de programme */}
       {showCustomizer && <WorkoutCustomizer onClose={handleCloseCustomizer} />}
@@ -209,40 +337,56 @@ export default function App() {
       {viewMode === 'workout' ? (
         // Mode Entraînement
         <>
-          <Tabs days={workoutPlan} current={current} setCurrent={i=>{setCurrent(i);setStepMode(false);}} />
-          {!stepMode ? (
-            <div className="day-content">
-              <h2 style={{ fontSize: '1.1rem', marginBottom: 16 }}>{workoutPlan[current].title}</h2>
-              
-              {/* Bouton mode Fat Burner */}
-              {fatBurnerMode && (
-                <div className="fat-burner-banner">
-                  <span className="fat-burner-icon">🔥</span>
-                  <span className="fat-burner-text">{t('mode.fatBurner')}</span>
+          {isPlanAvailable && (
+            <>
+              <Tabs days={workoutPlan} current={current} setCurrent={i=>{setCurrent(i);setStepMode(false);}} />
+              {!stepMode ? (
+                <div className="day-content">
+                  <h2 style={{ fontSize: '1.1rem', marginBottom: 16 }}>{workoutPlan[current].title}</h2>
+                  
+                  {/* Bouton mode Fat Burner */}
+                  {fatBurnerMode && (
+                    <div className="fat-burner-banner">
+                      <span className="fat-burner-icon">🔥</span>
+                      <span className="fat-burner-text">{t('mode.fatBurner')}</span>
+                    </div>
+                  )}
+                  
+                  <button className="timer-btn" style={{marginBottom:16}} onClick={()=>setStepMode(true)}>
+                    {t('workout.start')}
+                  </button>
+                  {workoutPlan[current].exercises.map((exo, i) => (
+                    <div className="exo-card" key={i}>
+                      <div className="exo-header">
+                        <span className="exo-title">{exo.name}</span>
+                        <span className="exo-series">{fatBurnerMode ? t('workout.fatBurnerSets', { sets: exo.sets }) : exo.sets}</span>
+                      </div>
+                      <div className="exo-equip">{t('workout.equipment')}: {exo.equip}</div>
+                      <div className="exo-desc">{exo.desc}</div>
+                    </div>
+                  ))}
                 </div>
+              ) : (
+                <StepWorkout 
+                  dayIndex={current} 
+                  onBack={()=>setStepMode(false)}
+                  onComplete={handleWorkoutComplete}
+                  fatBurnerMode={fatBurnerMode}
+                />
               )}
-              
-              <button className="timer-btn" style={{marginBottom:16}} onClick={()=>setStepMode(true)}>
-                {t('workout.start')}
+            </>
+          )}
+          {!isPlanAvailable && (
+            <div className="error-message">
+              <h2>{t('app.planError')}</h2>
+              <p>{t('app.planErrorDetails')}</p>
+              <button 
+                className="reload-button"
+                onClick={() => window.location.reload()}
+              >
+                {t('app.reload')}
               </button>
-              {workoutPlan[current].exercises.map((exo, i) => (
-                <div className="exo-card" key={i}>
-                  <div className="exo-header">
-                    <span className="exo-title">{exo.name}</span>
-                    <span className="exo-series">{fatBurnerMode ? t('workout.fatBurnerSets', { sets: exo.sets }) : exo.sets}</span>
-                  </div>
-                  <div className="exo-equip">{t('workout.equipment')}: {exo.equip}</div>
-                  <div className="exo-desc">{exo.desc}</div>
-                </div>
-              ))}
             </div>
-          ) : (
-            <StepWorkout 
-              dayIndex={current} 
-              onBack={()=>setStepMode(false)}
-              onComplete={handleWorkoutComplete}
-              fatBurnerMode={fatBurnerMode}
-            />
           )}
         </>
       ) : viewMode === 'history' ? (
