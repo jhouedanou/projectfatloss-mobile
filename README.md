@@ -1,6 +1,6 @@
-# Semaine Muscu Mobile
+# Project Fat Loss
 
-Application web mobile pour suivre un programme de musculation sur 7 jours.
+Application web mobile pour suivre un programme d'entraînement avec calcul des calories brûlées.
 
 ## Fonctionnalités
 - Navigation par jour
@@ -8,6 +8,9 @@ Application web mobile pour suivre un programme de musculation sur 7 jours.
 - Progression étape par étape (un exercice à la fois)
 - Miniatures pour chaque exercice
 - Design responsive et moderne
+- **Suivi des calories brûlées par exercice et par jour**
+- **Animation des calories brûlées après chaque série**
+- **Écran récapitulatif en fin de journée avec félicitations**
 
 ## Démarrage local
 
@@ -25,21 +28,19 @@ npm run dev
 git init
 git add .
 git commit -m "init"
-git remote add origin https://github.com/<ton-user>/<ton-repo>.git
+git remote add origin https://github.com/jhouedanou/projectfatloss.git
 git push -u origin main
    ```
-2. Installe gh-pages :
+2. Installe gh-pages (déjà fait):
    ```bash
 npm install --save-dev gh-pages
    ```
-3. Ajoute dans `package.json` :
-   ```json
-   "homepage": "https://<ton-user>.github.io/<ton-repo>"
-   ```
-   Et les scripts :
-   ```json
-   "predeploy": "vite build",
-   "deploy": "gh-pages -d dist"
+3. Configuration vite.config.js (déjà fait):
+   ```js
+   export default defineConfig({
+     plugins: [react()],
+     base: '/projectfatloss/',
+   });
    ```
 4. Déploie :
    ```bash
