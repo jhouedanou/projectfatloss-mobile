@@ -369,6 +369,51 @@ body {
   transition: width 1s linear;
 }
 
+/* Styles pour les boutons du modal de fin d'entraînement */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.save-btn {
+  background-color: #4CAF50;
+}
+
+.close-btn {
+  background-color: #9a8c98;
+}
+
+.weight-total {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.weight-total span {
+  color: #2196F3;
+  font-weight: bold;
+}
+
+/* Bouton de bascule historique/entraînement */
+.history-toggle {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--header-text);
+  padding: 0;
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Styles pour la vue historique */
+.history-content {
+  padding: 10px;
+}
+
 /* Responsive updates */
 @media (max-width: 600px) {
   .app-header {

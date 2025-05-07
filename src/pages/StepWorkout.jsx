@@ -97,7 +97,57 @@ function FloatingCalorieCounter({ calories, exerciseCompleted }) {
 }
 
 // Component for end of day summary modal
-function EndOfDayModal({ day, totalCalories, onClose }) {
+function EndOfDayModal({ day, totalCalories, onClose, onSaveWorkout }) {
+  // Fonction pour calculer le poids total en fonction de l'équipement
+  function calculateWeight(equipment) {
+    // Extraire les nombres de la chaîne d'équipement (ex: "Haltères 15 kg" -> 15)
+    const match = equipment && equipment.match(/(\d+)\s*kg/i);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+  
+  // Calculer le poids total soulevé pendant la séance
+  const totalWeightLifted = day.exercises.reduce((total, exercise) => {
+    const weight = calculateWeight(exercise.equip);
+    const sets = parseSets(exercise.sets);
+    // Estimation des répétitions basée sur le format "4 × 12-15"
+    let reps = 0;
+    const repsMatch = exercise.sets.match(/\d+\s*[x×]\s*(\d+)(?:-(\d+))?/i);
+    if (repsMatch) {
+      if (repsMatch[2]) {
+        // Si format "12-15", prendre la moyenne
+        reps = Math.round((parseInt(repsMatch[1], 10) + parseInt(repsMatch[2], 10)) / 2);
+      } else {
+        reps = parseInt(repsMatch[1], 10);
+      }
+    }
+    return total + (weight * sets * reps);
+  }, 0);
+  
+  const handleSave = () => {
+    // Préparer les données de l'entraînement à sauvegarder
+    const workoutData = {
+      title: day.title,
+      date: new Date().toISOString(),
+      calories: totalCalories,
+      weightLifted: totalWeightLifted,
+      exerciseCount: day.exercises.length,
+      exercises: day.exercises.map(exercise => ({
+        name: exercise.name,
+        sets: parseSets(exercise.sets),
+        weightLifted: calculateWeight(exercise.equip)
+      }))
+    };
+    
+    // Sauvegarder dans le stockage local
+    const savedWorkout = saveWorkout(workoutData);
+    
+    // Appeler le callback de sauvegarde
+    onSaveWorkout && onSaveWorkout(savedWorkout);
+    
+    // Fermer la modale
+    onClose();
+  };
+  
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -105,8 +155,12 @@ function EndOfDayModal({ day, totalCalories, onClose }) {
         <div className="completion-icon">🔥</div>
         <h3>Séance terminée : {day.title}</h3>
         <p className="calorie-total">Vous avez brûlé <span>{totalCalories}</span> calories !</p>
+        <p className="weight-total">Poids total soulevé : <span>{totalWeightLifted} kg</span></p>
         <p className="motivation-text">Excellent travail ! Continuez ainsi pour atteindre vos objectifs.</p>
-        <button className="timer-btn" onClick={onClose}>Retour à la liste</button>
+        <div className="modal-actions">
+          <button className="timer-btn save-btn" onClick={handleSave}>Enregistrer</button>
+          <button className="timer-btn close-btn" onClick={onClose}>Fermer</button>
+        </div>
       </div>
     </div>
   );
@@ -210,7 +264,9 @@ function StepSet({ exo, setNum, totalSets, onDone, onCaloriesBurned }) {
   );
 }
 
-export default function StepWorkout({ dayIndex, onBack }) {
+import { saveWorkout } from '../services/WorkoutStorage';
+
+export default function StepWorkout({ dayIndex, onBack, onComplete }) {
   const [step, setStep] = useState(0); // exercice
   const [pause, setPause] = useState(false);
   const [isExerciseTransition, setIsExerciseTransition] = useState(false); // Indique si on est dans une transition entre exercices
@@ -290,6 +346,11 @@ export default function StepWorkout({ dayIndex, onBack }) {
     onBack(); // Return to workout list
   };
   
+  const handleSaveWorkout = (workoutData) => {
+    // Appeler le callback pour enregistrer les données
+    onComplete && onComplete(workoutData);
+  };
+  
   return (
     <div className="day-content">
       <button className="timer-btn" style={{marginBottom:10}} onClick={onBack}>Retour</button>
@@ -326,7 +387,8 @@ export default function StepWorkout({ dayIndex, onBack }) {
         <EndOfDayModal 
           day={day} 
           totalCalories={totalCaloriesBurned} 
-          onClose={handleCloseEndOfDayModal} 
+          onClose={handleCloseEndOfDayModal}
+          onSaveWorkout={handleSaveWorkout}
         />
       )}
     </div>
