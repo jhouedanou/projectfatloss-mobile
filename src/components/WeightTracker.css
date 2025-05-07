@@ -1,0 +1,279 @@
+/* Styles pour le composant de suivi de poids */
+
+.weight-tracker {
+  padding: 15px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.weight-tracker h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.weight-tracker h3 {
+  font-size: 1.1rem;
+  margin: 20px 0 15px;
+  color: var(--text-primary);
+}
+
+/* Formulaire d'ajout de poids */
+.weight-form-container {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+}
+
+.weight-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 150px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+.add-weight-btn {
+  background: var(--button-bg);
+  color: var(--button-text);
+  border: none;
+  border-radius: 6px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.add-weight-btn:hover {
+  background: var(--button-active);
+}
+
+.error-message {
+  color: #ff5252;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.success-message {
+  color: #4CAF50;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+/* Statistiques de poids */
+.weight-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 2px 8px var(--card-shadow);
+}
+
+.stat-title {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+}
+
+.stat-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.stat-percentage {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.weight-change.positive .stat-value,
+.weight-change.positive .stat-percentage {
+  color: #4CAF50;
+}
+
+.weight-change.negative .stat-value,
+.weight-change.negative .stat-percentage {
+  color: #ff5252;
+}
+
+.min-max {
+  display: flex;
+  justify-content: space-around;
+}
+
+.min-weight, .max-weight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.min-weight .stat-value {
+  color: #4CAF50;
+  font-size: 1.2rem;
+}
+
+.max-weight .stat-value {
+  color: #ff5252;
+  font-size: 1.2rem;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin-bottom: 3px;
+}
+
+/* Graphique d'évolution */
+.weight-chart {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+}
+
+.no-weight-data {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 30px 15px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+  color: var(--text-secondary);
+}
+
+.no-weight-data p:first-child {
+  margin-top: 0;
+}
+
+.no-weight-data p:last-child {
+  margin-bottom: 0;
+}
+
+/* Historique des enregistrements */
+.weight-history {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+}
+
+.weight-records-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.weight-record {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid var(--card-shadow);
+  position: relative;
+}
+
+.weight-record:last-child {
+  border-bottom: none;
+}
+
+.record-date {
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.record-weight {
+  font-weight: bold;
+  margin: 0 15px;
+  color: var(--text-primary);
+}
+
+.record-notes {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-right: 25px;
+  font-size: 0.9rem;
+}
+
+.delete-record {
+  background: transparent;
+  border: none;
+  color: #ff5252;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .weight-form {
+    flex-direction: column;
+  }
+  
+  .form-group {
+    width: 100%;
+  }
+  
+  .add-weight-btn {
+    width: 100%;
+  }
+  
+  .weight-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .weight-record {
+    flex-wrap: wrap;
+  }
+  
+  .record-date {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  
+  .record-notes {
+    width: 100%;
+    margin: 5px 0;
+  }
+}

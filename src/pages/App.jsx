@@ -3,7 +3,8 @@ import { days } from '../data';
 import StepWorkout from './StepWorkout';
 import WorkoutCalendar from '../components/WorkoutCalendar';
 import WorkoutStats from '../components/WorkoutStats';
-import '../components/WorkoutTracker.css';
+import WeightTracker from '../components/WeightTracker';
+import '../components/WeightTracker.css';
 
 function Tabs({ days, current, setCurrent }) {
   return (
@@ -24,7 +25,7 @@ function Tabs({ days, current, setCurrent }) {
 export default function App() {
   const [current, setCurrent] = useState(0);
   const [stepMode, setStepMode] = useState(false);
-  const [viewMode, setViewMode] = useState('workout'); // 'workout' ou 'history'
+  const [viewMode, setViewMode] = useState('workout'); // 'workout', 'history' ou 'weight'
   const [darkTheme, setDarkTheme] = useState(() => {
     const savedTheme = localStorage.getItem('darkTheme');
     return savedTheme === 'true';
@@ -61,12 +62,29 @@ export default function App() {
           {darkTheme ? '☀️' : '🌙'}
         </button>
         <span className="header-title">Project Fat Loss</span>
-        <button 
-          className="history-toggle" 
-          onClick={() => setViewMode(viewMode === 'workout' ? 'history' : 'workout')}
-        >
-          {viewMode === 'workout' ? '📊' : '🏋️'}
-        </button>
+        <div className="header-controls">
+          <button 
+            className="view-toggle" 
+            onClick={() => setViewMode('workout')}
+            title="Mode entraînement"
+          >
+            🏋️
+          </button>
+          <button 
+            className="view-toggle" 
+            onClick={() => setViewMode('history')}
+            title="Historique et statistiques"
+          >
+            📊
+          </button>
+          <button 
+            className="view-toggle" 
+            onClick={() => setViewMode('weight')}
+            title="Suivi de poids"
+          >
+            ⚖️
+          </button>
+        </div>
       </header>
       
       {viewMode === 'workout' ? (
@@ -96,11 +114,16 @@ export default function App() {
             />
           )}
         </>
-      ) : (
+      ) : viewMode === 'history' ? (
         // Mode Historique et Statistiques
         <div className="history-content">
           <WorkoutStats />
           <WorkoutCalendar />
+        </div>
+      ) : (
+        // Mode Suivi de Poids
+        <div className="weight-content">
+          <WeightTracker />
         </div>
       )}
     </div>

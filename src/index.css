@@ -51,29 +51,53 @@ body {
   flex-direction: column;
 }
 
+/* Header et navigation */
 .app-header {
-  background: var(--header-bg);
-  color: var(--header-text);
-  padding: 1rem;
-  text-align: center;
-  font-size: 1.5rem;
-  letter-spacing: 1px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .header-title {
-  flex: 1;
-  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.theme-toggle {
+.theme-toggle, .view-toggle {
   background: transparent;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   cursor: pointer;
   color: var(--header-text);
+  padding: 0;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.view-toggle {
+  opacity: 0.7;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.view-toggle:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 .tabs {
