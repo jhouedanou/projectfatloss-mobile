@@ -15,6 +15,7 @@
   --button-bg: #4a4e69;
   --button-text: #fff;
   --button-active: #22223b;
+  --series-text: #ff0000; /* Nouvelle variable pour le texte des séries en rouge */
 }
 
 .dark-theme {
@@ -33,6 +34,7 @@
   --button-bg: #2d3748;
   --button-text: #e0e0e0;
   --button-active: #1a1a2e;
+  --series-text: #ff3333; /* Rouge plus vif pour le mode sombre */
 }
 
 body {
@@ -59,6 +61,19 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+}
+
+.theme-toggle {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--header-text);
 }
 
 .tabs {
@@ -115,6 +130,17 @@ body {
   font-size: 0.95rem;
 }
 
+/* Style pour le texte des séries en rouge */
+.exo-series span {
+  color: var(--series-text);
+  font-weight: bold;
+}
+
+.series-current {
+  color: var(--series-text) !important;
+  font-weight: bold;
+}
+
 .exo-equip {
   color: var(--text-tertiary);
   font-size: 0.95rem;
@@ -140,17 +166,6 @@ body {
 .timer-btn:active {
   background: var(--button-active);
 }
-
-@media (max-width: 600px) {
-  .app-header {
-    font-size: 1.1rem;
-  }
-  .day-content {
-    padding: 0.5rem;
-  }
-}
-
-/* New styles for calorie tracking and end-of-day modal */
 
 /* Calories counter at the top of workout */
 .calories-counter {
@@ -254,8 +269,114 @@ body {
   margin-bottom: 1.5rem;
 }
 
-/* Add the following responsive updates */
+/* Compteur calorique flottant */
+.floating-calories {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: rgba(255, 0, 0, 0.8);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.5s, transform 0.3s;
+  z-index: 100;
+}
+
+.floating-calories.completed {
+  background-color: rgba(0, 128, 0, 0.8);
+}
+
+.floating-calories-value {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.floating-calories-label {
+  font-size: 0.7rem;
+  margin: 0;
+}
+
+.floating-calories.pulse {
+  animation: caloriePulse 0.5s ease-out;
+}
+
+@keyframes caloriePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Timer pour les exercices chronométrés */
+.exercise-timer {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 15px auto;
+  width: 80%;
+  max-width: 300px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+  text-align: center;
+}
+
+.timer-display {
+  font-family: 'Courier New', monospace;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin: 5px 0;
+}
+
+.timer-display.warning {
+  color: #ff5733; /* Orange-rouge pour les 10 dernières secondes */
+  animation: timerPulse 1s infinite;
+}
+
+.timer-display.critical {
+  color: #ff0000; /* Rouge pour les 5 dernières secondes */
+  animation: timerPulse 0.5s infinite;
+}
+
+@keyframes timerPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.timer-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.timer-progress {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  margin: 10px 0;
+  overflow: hidden;
+}
+
+.timer-progress-bar {
+  height: 100%;
+  background: linear-gradient(to right, #4CAF50, #2196F3);
+  transition: width 1s linear;
+}
+
+/* Responsive updates */
 @media (max-width: 600px) {
+  .app-header {
+    font-size: 1.1rem;
+  }
+  .day-content {
+    padding: 0.5rem;
+  }
   .modal-content {
     padding: 1.5rem;
     width: 90%;
@@ -263,5 +384,15 @@ body {
   
   .completion-icon {
     font-size: 3rem;
+  }
+  
+  .floating-calories {
+    width: 60px;
+    height: 60px;
+    font-size: 0.9rem;
+  }
+  
+  .floating-calories-value {
+    font-size: 1.2rem;
   }
 }

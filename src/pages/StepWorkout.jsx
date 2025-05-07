@@ -1,9 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { days } from '../data';
 import ExoIcon, { EquipIcon } from '../components/ExoIcon';
 import ProgressBar from '../components/ProgressBar';
 // Load icons map
 import iconsMap from '../../public/exo-icons.json';
+
+// Son de notification
+const beepSound = new Audio('/beep.mp3');
+
+function playBeep() {
+  // Clone l'audio pour pouvoir jouer plusieurs instances simultanément
+  const beep = beepSound.cloneNode();
+  beep.volume = 0.7;
+  beep.play().catch(err => console.error("Erreur de lecture audio:", err));
+}
 
 function parseSets(sets) {
   // Ex: "4 × 12-15" => 4
@@ -11,22 +21,47 @@ function parseSets(sets) {
   return m ? parseInt(m[1], 10) : 1;
 }
 
-function Pause({ onEnd, onSkip }) {
-  const [time, setTime] = useState(30);
+function Pause({ onEnd, onSkip, isExerciseTransition }) {
+  // isExerciseTransition = true signifie qu'on est dans une pause entre exercices (inactif)
+  // isExerciseTransition = false signifie qu'on est dans une pause normale (bouton actif)
+  const [time, setTime] = useState(15); // 15 secondes de repos pour tous les types de pause
+  
   useEffect(() => {
     if (time === 0) {
       onEnd();
       return;
     }
+    
+    // Jouer les bips à 6, 3, 2, 1 secondes avant la fin
+    if (time === 6 || time === 3 || time === 2 || time === 1) {
+      playBeep();
+    } else if (time === 0) {
+      // Deux bips rapides à la fin
+      playBeep();
+      setTimeout(() => playBeep(), 200);
+    }
+    
     const id = setTimeout(() => setTime(t => t - 1), 1000);
     return () => clearTimeout(id);
-  }, [time, onEnd]);
+  }, [time, onEnd, isExerciseTransition]);
+  
   return (
     <div style={{textAlign:'center',marginTop:40}}>
       <h2>Pause</h2>
       <div style={{fontSize:40,margin:20}}>{time}s</div>
-      <p>Prépare-toi pour le prochain exercice !</p>
-      <button className="timer-btn" style={{marginTop:20}} onClick={onSkip}>Passer la pause</button>
+      <p>Prépare-toi pour {isExerciseTransition ? "le prochain exercice" : "la prochaine série"} !</p>
+      <button 
+        className="timer-btn" 
+        style={{
+          marginTop:20, 
+          opacity: isExerciseTransition ? 0.5 : 1,
+          cursor: isExerciseTransition ? 'not-allowed' : 'pointer'
+        }} 
+        onClick={isExerciseTransition ? undefined : onSkip}
+        disabled={isExerciseTransition}
+      >
+        Passer la pause
+      </button>
     </div>
   );
 }
@@ -36,6 +71,27 @@ function CalorieDisplay({ calories, visible }) {
   return (
     <div className={`calorie-display ${visible ? 'visible' : ''}`}>
       <span>+{calories} calories brûlées !</span>
+    </div>
+  );
+}
+
+// Component for floating calorie counter
+function FloatingCalorieCounter({ calories, exerciseCompleted }) {
+  const [pulse, setPulse] = useState(false);
+  
+  // Effet pour déclencher l'animation de pouls quand les calories changent
+  useEffect(() => {
+    if (calories > 0) {
+      setPulse(true);
+      const timer = setTimeout(() => setPulse(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [calories]);
+  
+  return (
+    <div className={`floating-calories ${exerciseCompleted ? 'completed' : ''} ${pulse ? 'pulse' : ''}`}>
+      <p className="floating-calories-value">{calories}</p>
+      <p className="floating-calories-label">CALORIES</p>
     </div>
   );
 }
@@ -57,7 +113,7 @@ function EndOfDayModal({ day, totalCalories, onClose }) {
 }
 
 function StepSet({ exo, setNum, totalSets, onDone, onCaloriesBurned }) {
-  const [timer, setTimer] = useState(exo.timer ? (exo.duration || 60) : null);
+  const [timer, setTimer] = useState(exo.timer ? (exo.duration || 30) : null); // 30 secondes par défaut
   const [running, setRunning] = useState(false);
   const [showCalories, setShowCalories] = useState(false);
   
@@ -69,6 +125,12 @@ function StepSet({ exo, setNum, totalSets, onDone, onCaloriesBurned }) {
   useEffect(() => {
     if (!exo.timer || !running) return;
     if (timer === 0) return;
+    
+    // Jouer des bips à certains moments clés du chronomètre
+    if (timer === 10 || timer === 5 || timer === 4 || timer === 3 || timer === 2 || timer === 1) {
+      playBeep();
+    }
+    
     const id = setTimeout(() => setTimer(t => t - 1), 1000);
     return () => clearTimeout(id);
   }, [timer, running, exo.timer]);
@@ -91,22 +153,52 @@ function StepSet({ exo, setNum, totalSets, onDone, onCaloriesBurned }) {
     }, 2000);
   };
   
+  // Format le temps pour l'affichage mm:ss
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+  
+  // Calcule le pourcentage du temps écoulé
+  const calculateProgress = () => {
+    if (!exo.timer || !exo.duration) return 0;
+    return 100 - (timer / exo.duration * 100);
+  };
+  
+  // Détermine la classe du timer en fonction du temps restant
+  const getTimerClass = () => {
+    if (!exo.timer) return '';
+    if (timer <= 5) return 'critical';
+    if (timer <= 10) return 'warning';
+    return '';
+  };
+  
   return (
     <div className="exo-card" style={{textAlign:'center',marginTop:32}}>
       <ExoIcon type={iconType} size={48} />
       <div className="exo-title" style={{fontSize:'1.3rem',margin:'12px 0'}}>{exo.name}</div>
-      <div className="exo-series">Série {setNum+1} / {totalSets} &nbsp; <span style={{color:'#9a8c98'}}>{exo.sets}</span></div>
+      <div className="exo-series">Série <span className="series-current">{setNum+1}</span> / {totalSets} &nbsp; <span style={{color:'#ff0000'}}>{exo.sets}</span></div>
       <div className="exo-equip"><EquipIcon equip={exo.equip} />{exo.equip}</div>
       <div className="exo-desc" style={{marginBottom:16}}>{exo.desc}</div>
       {exo.timer ? (
-        <div>
-          <div style={{fontFamily:'monospace',fontSize:'1.2em',marginBottom:8}}>
-            {String(Math.floor(timer/60)).padStart(2,'0')}:{String(timer%60).padStart(2,'0')}
+        <div className="exercise-timer">
+          <div className="timer-label">
+            {running ? 'En cours...' : 'Prêt ?'}
+          </div>
+          <div className={`timer-display ${getTimerClass()}`}>
+            {formatTime(timer)}
+          </div>
+          <div className="timer-progress">
+            <div 
+              className="timer-progress-bar" 
+              style={{ width: `${calculateProgress()}%` }}
+            ></div>
           </div>
           {!running ? (
             <button className="timer-btn" onClick={()=>setRunning(true)}>Démarrer</button>
           ) : (
-            <button className="timer-btn" onClick={()=>{setRunning(false);setTimer(exo.duration||60);}}>Réinitialiser</button>
+            <button className="timer-btn" onClick={()=>{setRunning(false);setTimer(exo.duration||30);}}>Réinitialiser</button>
           )}
         </div>
       ) : (
@@ -121,9 +213,12 @@ function StepSet({ exo, setNum, totalSets, onDone, onCaloriesBurned }) {
 export default function StepWorkout({ dayIndex, onBack }) {
   const [step, setStep] = useState(0); // exercice
   const [pause, setPause] = useState(false);
+  const [isExerciseTransition, setIsExerciseTransition] = useState(false); // Indique si on est dans une transition entre exercices
   const [setNum, setSetNum] = useState(0);
   const [totalCaloriesBurned, setTotalCaloriesBurned] = useState(0);
   const [showEndOfDayModal, setShowEndOfDayModal] = useState(false);
+  const [workoutCompleted, setWorkoutCompleted] = useState(false); // Nouvel état pour suivre si l'entraînement est terminé
+  const isFirstRender = useRef(true);
   
   const day = days[dayIndex];
   const total = day.exercises.length;
@@ -133,13 +228,41 @@ export default function StepWorkout({ dayIndex, onBack }) {
   useEffect(()=>{
     setStep(0);
     setPause(false);
+    setIsExerciseTransition(false);
     setSetNum(0);
     setTotalCaloriesBurned(0);
     setShowEndOfDayModal(false);
   },[dayIndex]);
   
-  const handlePauseEnd = () => setPause(false);
-  const handleSkipPause = () => setPause(false);
+  // Effet pour jouer le bip sonore lors du changement d'exercice
+  useEffect(() => {
+    // Ne pas jouer le son au premier rendu
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    
+    // Jouer le son quand on passe à un nouvel exercice ou à une nouvelle série
+    if (step > 0 || setNum > 0) {
+      try {
+        playBeep();
+      } catch (error) {
+        console.error("Erreur lors de la lecture du son :", error);
+      }
+    }
+  }, [step, setNum]);
+  
+  const handlePauseEnd = () => {
+    setPause(false);
+    setIsExerciseTransition(false);
+  };
+  
+  const handleSkipPause = () => {
+    // Ne peut être appelé que si ce n'est pas une transition entre exercices
+    if (!isExerciseTransition) {
+      setPause(false);
+    }
+  };
   
   const handleCaloriesBurned = (calories) => {
     setTotalCaloriesBurned(prev => prev + calories);
@@ -148,12 +271,16 @@ export default function StepWorkout({ dayIndex, onBack }) {
   const next = () => {
     if (setNum < totalSets - 1) {
       setSetNum(s => s + 1);
+      setPause(true);
+      setIsExerciseTransition(false); // Pause normale entre séries (30s, bouton actif)
     } else if (step < total - 1) {
       setPause(true);
+      setIsExerciseTransition(true); // Pause forcée entre exercices (10s, bouton inactif)
       setSetNum(0);
       setStep(s => s + 1);
     } else {
       // Workout completed - show end of day modal instead of simple message
+      setWorkoutCompleted(true); // Marquer l'entraînement comme terminé
       setShowEndOfDayModal(true);
     }
   };
@@ -175,8 +302,15 @@ export default function StepWorkout({ dayIndex, onBack }) {
         Calories brûlées: <span>{totalCaloriesBurned}</span>
       </div>
       
+      {/* Floating calorie counter */}
+      <FloatingCalorieCounter calories={totalCaloriesBurned} exerciseCompleted={workoutCompleted} />
+      
       {pause ? (
-        <Pause onEnd={handlePauseEnd} onSkip={handleSkipPause} />
+        <Pause 
+          onEnd={handlePauseEnd} 
+          onSkip={handleSkipPause} 
+          isExerciseTransition={isExerciseTransition}
+        />
       ) : (
         <StepSet 
           exo={exo} 
