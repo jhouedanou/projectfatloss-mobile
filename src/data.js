@@ -1,0 +1,131 @@
+export const days = [
+  {
+    title: 'JOUR 1: PUSH (Pectoraux, Épaules, Triceps)',
+    exercises: [
+      {
+        name: 'Développé haltères',
+        sets: '4 × 12-15',
+        equip: 'Haltères 15 kg',
+        desc: "Position assise ou allongée, poussez les haltères vers le haut en alignant les coudes avec les épaules. Travaille les pectoraux, épaules et triceps.",
+      },
+      {
+        name: 'Élévations latérales',
+        sets: '4 × 12',
+        equip: 'Haltères 10 kg',
+        desc: "Debout, bras le long du corps, soulevez les haltères latéralement jusqu'à hauteur d'épaules. Cible le deltoïde moyen.",
+      },
+      {
+        name: 'Développé incliné haltères',
+        sets: '3 × 12',
+        equip: 'Haltères 15 kg',
+        desc: "Sur banc incliné (30-45°), poussez les haltères vers le haut. Accentue le travail du haut des pectoraux.",
+      },
+      {
+        name: 'Élévations frontales',
+        sets: '3 × 12',
+        equip: 'Haltères 10 kg',
+        desc: "Debout, bras devant vous, soulevez les haltères jusqu'à hauteur d'épaules. Cible le deltoïde antérieur.",
+      },
+      {
+        name: 'Extensions triceps',
+        sets: '3 × 15',
+        equip: 'Haltère 15 kg (à deux mains)',
+        desc: "Allongé ou assis, haltère tenu à deux mains au-dessus de la tête, pliez les coudes puis tendez les bras. Isole les triceps.",
+      },
+      {
+        name: 'Dips lestés',
+        sets: '3 × max',
+        equip: 'Gilet lesté 10 kg',
+        desc: "Mains sur un banc/chaise, fléchissez les coudes pour descendre le corps puis remontez. Travaille triceps et pectoraux.",
+      },
+      {
+        name: 'Crunchs lestés',
+        sets: '3 × 25',
+        equip: 'Haltère 10 kg',
+        desc: "Allongé sur le dos, haltère sur la poitrine, soulevez les épaules du sol. Intensifie le travail abdominal.",
+      },
+      {
+        name: 'Planche lestée',
+        sets: '3 × 30-60 sec',
+        equip: 'Gilet lesté 10 kg',
+        desc: "En appui sur les avant-bras et les orteils, maintenez le corps droit. Renforce la ceinture abdominale.",
+        timer: true,
+        duration: 60
+      },
+    ],
+  },
+  {
+    title: 'JOUR 2: PULL (Dos, Biceps)',
+    exercises: [
+      { name: 'Rowing haltères un bras', sets: '4 × 12', equip: 'Haltère 15 kg', desc: "Un genou et une main sur un banc, tirez l'haltère vers la hanche en gardant le coude près du corps. Cible le grand dorsal et les rhomboïdes." },
+      { name: 'Rowing barre', sets: '4 × 10-12', equip: 'Barre 30 kg', desc: "Penché en avant, tirez la barre vers le ventre. Alternative au tirage vertical, travaille l'épaisseur du dos." },
+      { name: 'Rowing haltères deux bras', sets: '3 × 12', equip: 'Haltères 10 kg', desc: "Penché en avant, tirez les haltères vers le ventre. Travaille l'épaisseur du dos." },
+      { name: 'Curl biceps haltères', sets: '3 × 12', equip: 'Haltères 15 kg', desc: "Debout, coudes fixes, remontez les haltères en fléchissant les coudes. Isole les biceps." },
+      { name: 'Curl marteau', sets: '3 × 12', equip: 'Haltères 15 kg', desc: "Comme le curl biceps mais avec les paumes face à face. Cible les brachioradialis et les biceps." },
+      { name: 'Shrugs', sets: '3 × 15', equip: 'Haltères 15 kg ou barre 30 kg', desc: "Debout, haussez les épaules vers les oreilles. Développe les trapèzes." },
+      { name: 'Mountain climbers lestés', sets: '3 × 30 sec', equip: 'Gilet lesté 10 kg', desc: "En position de pompe, ramenez alternativement les genoux vers la poitrine. Travaille les abdominaux et l'endurance.", timer: true, duration: 30 },
+      { name: 'Russian twists', sets: '3 × 20', equip: 'Haltère 10 kg', desc: "Assis, buste incliné en arrière, rotations du tronc avec haltère. Cible les obliques." },
+    ],
+  },
+  {
+    title: 'JOUR 3: LEGS (Jambes, Fessiers)',
+    exercises: [
+      { name: 'Squats', sets: '4 × 15', equip: 'Barre 30 kg', desc: "Debout, pieds écartés largeur d'épaules, barre sur les épaules, descendez comme pour s'asseoir puis remontez. Travaille quadriceps, ischio-jambiers et fessiers." },
+      { name: 'Fentes avant alternées', sets: '4 × 12/jambe', equip: 'Haltères 15 kg', desc: "Un pas en avant, haltères en main, fléchissez les genoux pour descendre, puis remontez. Cible quadriceps, fessiers et équilibre." },
+      { name: 'Soulevé de terre roumain', sets: '3 × 12', equip: 'Barre 30 kg', desc: "Debout, jambes légèrement fléchies, penchez le buste en avant en gardant le dos droit. Cible les ischio-jambiers et les lombaires." },
+      { name: 'Step-ups', sets: '3 × 15/jambe', equip: 'Haltères 10 kg', desc: "Montez sur une marche/banc avec un pied, puis l'autre. Alternative aux extensions de jambes." },
+      { name: 'Hip thrust', sets: '3 × 15', equip: 'Barre 30 kg', desc: "Épaules sur un banc/canapé, barre sur les hanches, soulevez le bassin. Maximise le travail des fessiers." },
+      { name: 'Mollets debout', sets: '4 × 20', equip: 'Haltères 15 kg', desc: "Debout sur une marche/livre, montez sur la pointe des pieds puis redescendez. Cible les mollets." },
+      { name: 'Crunchs inversés lestés', sets: '3 × 15', equip: 'Gilet lesté 10 kg', desc: "Allongé, soulevez les jambes et le bassin vers le haut. Travaille le bas des abdominaux." },
+      { name: 'Relevé de jambes', sets: '3 × 15', equip: 'Lestage aux chevilles (optionnel)', desc: "Allongé, soulevez les jambes tendues à 90°. Cible le bas des abdominaux." },
+    ],
+  },
+  {
+    title: 'JOUR 4: PUSH (Variation)',
+    exercises: [
+      { name: 'Pompes lestées', sets: '4 × max', equip: 'Gilet lesté 10 kg', desc: "En appui sur mains et pieds, fléchissez les coudes puis poussez. Différentes positions des mains ciblent différentes parties des pectoraux." },
+      { name: 'Développé Arnold', sets: '4 × 12', equip: 'Haltères 10 kg', desc: "Assis, partez haltères devant vous, paumes face à vous, puis tournez les poignets en poussant vers le haut. Travaille tous les faisceaux des deltoïdes." },
+      { name: 'Écartés haltères', sets: '3 × 15', equip: 'Haltères 10 kg', desc: "Allongé, bras ouverts sur les côtés, rapprochez les haltères au-dessus de la poitrine. Étire et contracte les pectoraux." },
+      { name: 'Élévations latérales inclinées', sets: '3 × 12', equip: 'Haltères 10 kg', desc: "Penché en avant, effectuez des élévations latérales. Cible le deltoïde postérieur." },
+      { name: 'Extensions triceps au-dessus', sets: '3 × 15', equip: 'Haltère 15 kg (à deux mains)', desc: "Bras au-dessus de la tête, pliez le coude derrière la nuque puis tendez. Étire complètement le triceps." },
+      { name: 'Barre au front', sets: '3 × 15', equip: 'Barre 30 kg', desc: "Allongé, descendez la barre vers le front puis remontez en tendant les bras. Alternative aux kickbacks, cible les triceps." },
+      { name: 'Crunchs obliques', sets: '3 × 25', equip: 'Haltère 10 kg', desc: "Allongé, fléchissez le buste en orientant le coude vers le genou opposé. Cible les obliques." },
+      { name: 'Hollow hold', sets: '3 × 30 sec', equip: 'Gilet lesté 10 kg', desc: "Allongé, bras et jambes légèrement soulevés, creusez le ventre. Renforce profondément les abdominaux.", timer: true, duration: 30 },
+    ],
+  },
+  {
+    title: 'JOUR 5: PULL (Variation)',
+    exercises: [
+      { name: 'Soulevé de terre', sets: '4 × 10', equip: 'Barre 30 kg', desc: "Debout, pieds écartés, saisissez la barre au sol et soulevez-la en gardant le dos droit. Travaille tout le corps, particulièrement le dos et les jambes." },
+      { name: 'Pull-over avec haltère', sets: '3 × 15', equip: 'Haltère 15 kg', desc: "Allongé, bras tendus au-dessus de la poitrine, amenez l'haltère derrière la tête puis remontez. Étire le grand dorsal et les pectoraux." },
+      { name: 'Good morning', sets: '3 × 15', equip: 'Barre 30 kg', desc: "Barre sur les épaules, penchez le buste en avant en gardant le dos droit. Alternative au face pull, travaille les trapèzes et le dos." },
+      { name: 'Curl concentré', sets: '3 × 12', equip: 'Haltère 15 kg', desc: "Assis, coude calé contre la cuisse, fléchissez le bras. Maximise l'isolation du biceps." },
+      { name: 'Curl 21s', sets: '3 séries', equip: 'Barre 30 kg', desc: "7 répétitions partie basse + 7 répétitions partie haute + 7 répétitions complètes. Bombarde le biceps sous tous les angles." },
+      { name: 'Reverse fly', sets: '3 × 15', equip: 'Haltères 10 kg', desc: "Penché en avant, écartez les bras sur les côtés. Renforce les muscles posturaux du haut du dos." },
+      { name: 'Planche latérale', sets: '3 × 30 sec/côté', equip: 'Gilet lesté 10 kg', desc: "En appui sur un avant-bras et le côté du pied, maintenez le corps droit. Travaille les obliques et les stabilisateurs latéraux.", timer: true, duration: 30 },
+      { name: 'Bicycle crunch', sets: '3 × 20', equip: 'Lesté (optionnel)', desc: "Allongé, amenez le coude vers le genou opposé en alternant. Excellent pour cibler tous les abdominaux." },
+    ],
+  },
+  {
+    title: 'JOUR 6: LEGS (Variation)',
+    exercises: [
+      { name: 'Squats sumo', sets: '4 × 15', equip: 'Barre 30 kg', desc: "Pieds très écartés, pointes vers l'extérieur, descendez puis remontez. Accentue le travail des adducteurs et des fessiers." },
+      { name: 'Fentes latérales', sets: '3 × 12/côté', equip: 'Haltères 15 kg', desc: "Écartez une jambe sur le côté, fléchissez puis revenez. Cible particulièrement les adducteurs." },
+      { name: 'Pont fessier lesté', sets: '4 × 15', equip: 'Barre 30 kg', desc: "Allongé, pieds au sol, barre sur les hanches, soulevez le bassin. Isolation des fessiers." },
+      { name: 'Extensions de hanche', sets: '3 × 15/jambe', equip: 'Haltère 10 kg (derrière le genou)', desc: "À quatre pattes, étendez une jambe vers l'arrière et le haut. Cible les fessiers et les lombaires." },
+      { name: 'Squats bulgares', sets: '3 × 12/jambe', equip: 'Haltères 10 kg', desc: "Pied arrière sur un banc, descendez en fente. Alternative au good morning, cible les quadriceps et les fessiers." },
+      { name: 'Mollets assis', sets: '4 × 20', equip: 'Barre 30 kg sur les genoux', desc: "Assis, montez sur la pointe des pieds puis redescendez. Cible différemment les mollets." },
+      { name: 'Crunchs lestés', sets: '3 × 25', equip: 'Haltère 10 kg', desc: "Allongé sur le dos, jambes fléchies, soulevez les épaules du sol. Travaille la partie supérieure des abdominaux." },
+      { name: 'Dead bug', sets: '3 × 10/côté', equip: 'Lesté avec haltère 10 kg', desc: "Allongé, bras et jambes en l'air, descendez le bras et la jambe opposés. Excellent pour la stabilité du core." },
+    ],
+  },
+  {
+    title: 'JOUR 7: CARDIO & RÉCUPÉRATION',
+    exercises: [
+      { name: 'Vélo', sets: '30-45 min à intensité modérée', equip: 'Gilet lesté 10 kg (optionnel)', desc: "Maintient la fréquence cardiaque à 60-70% du maximum pour une combustion optimale des graisses.", timer: true, duration: 2700 },
+      { name: 'Cardio au choix', sets: '20-30 min', equip: 'Gilet lesté 10 kg (optionnel)', desc: "Activité complémentaire pour augmenter la dépense calorique hebdomadaire.", timer: true, duration: 1800 },
+      { name: 'Étirements complets', sets: '15-20 min', equip: 'Aucun', desc: "Augmente la flexibilité, réduit les courbatures et prévient les blessures.", timer: true, duration: 900 },
+      { name: 'Mobilité articulaire', sets: '10 min', equip: 'Aucun', desc: "Maintient l'amplitude de mouvements des articulations.", timer: true, duration: 600 },
+    ],
+  },
+];
