@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, ActivityIndicator, Linking } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { days, Exercise } from "../services/WorkoutData";
+import { workoutProgram } from '../services/workoutData';  // Import direct du programme
 import ExerciseVideoModal from "../components/ExerciseVideoModal";
+import { saveWorkout } from '../services/storage';
 
 // Composant pour afficher le timer
 function Timer({ duration, running, onComplete }) {
@@ -43,19 +45,24 @@ function Timer({ duration, running, onComplete }) {
 }
 
 // Composant pour la pause entre les séries ou exercices
-function PauseScreen({ duration, onComplete, onSkip, isExerciseTransition }) {
+function PauseScreen({ duration, onComplete, onSkip, isExerciseTransition, nextExercise }) {
   return (
     <View style={styles.pauseContainer}>
       <Text style={styles.pauseTitle}>Pause</Text>
       <Timer duration={duration} running={true} onComplete={onComplete} />
-      <Text style={styles.pauseSubtitle}>
-        Prépare-toi pour {isExerciseTransition ? "le prochain exercice" : "la prochaine série"}
-      </Text>
-      {!isExerciseTransition && (
-        <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
-          <Text style={styles.skipButtonText}>Passer la pause</Text>
-        </TouchableOpacity>
+      
+      {isExerciseTransition && nextExercise && (
+        <View style={styles.nextExerciseInfo}>
+          <Text style={styles.nextExerciseTitle}>Prochain exercice :</Text>
+          <Text style={styles.nextExerciseName}>{nextExercise.name}</Text>
+          <Text style={styles.nextExerciseEquip}>{nextExercise.equip}</Text>
+          <Text style={styles.nextExerciseSets}>{nextExercise.sets}</Text>
+        </View>
       )}
+
+      <TouchableOpacity style={styles.skipButton} onPress={onSkip}>
+        <Text style={styles.skipButtonText}>Passer la pause</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -65,6 +72,14 @@ export default function StepWorkout() {
   const { dayIndex = "0" } = useLocalSearchParams();
   const dayId = parseInt(dayIndex as string, 10) || 0;
   
+  // État pour le workout
+  const [workout, setWorkout] = useState<any>(null);
+
+  // Charger le workout au démarrage
+  useEffect(() => {
+    setWorkout(workoutProgram[dayId]);
+  }, [dayId]);
+
   // État pour suivre la progression
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
@@ -76,6 +91,7 @@ export default function StepWorkout() {
   
   // État pour le modal de vidéo
   const [videoModalVisible, setVideoModalVisible] = useState(false);
+  const [showYoutubeModal, setShowYoutubeModal] = useState(false);
   
   // Options
   const [fatBurnerMode, setFatBurnerMode] = useState(false);
@@ -83,8 +99,14 @@ export default function StepWorkout() {
   // Définir la durée de pause selon le mode
   const pauseDuration = fatBurnerMode ? 10 : 30;
   
-  // Utilisation des vraies données d'exercices
-  const workout = days[dayId];
+  if (!workout) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text style={styles.loadingText}>Chargement de la séance...</Text>
+      </View>
+    );
+  }
   
   // Extraire le nombre de séries pour l'exercice actuel
   const getSetCount = (sets) => {
@@ -157,15 +179,45 @@ export default function StepWorkout() {
   };
   
   // Gérer l'achèvement de l'entraînement
-  const handleWorkoutComplete = () => {
-    // Sauvegarder les données d'entraînement (à implémenter)
-    // saveWorkoutHistory({ ...workout, date: new Date(), calories: totalCalories });
-    
-    Alert.alert(
-      "Félicitations !",
-      `Tu as terminé ta séance et brûlé ${totalCalories} calories !`,
-      [{ text: "Super !", onPress: () => router.navigate("/(tabs)/") }]
-    );
+  const handleWorkoutComplete = async () => {
+    try {
+      // Préparer les données de l'entraînement
+      const workoutData = {
+        title: workout.title,
+        date: new Date().toISOString(),
+        calories: totalCalories,
+        exercises: workout.exercises.map(ex => ({
+          name: ex.name,
+          sets: getSetCount(ex.sets),
+          equip: ex.equip
+        })),
+        duration: 20, // en minutes
+        exerciseCount: workout.exercises.length
+      };
+
+      // Sauvegarder l'entraînement
+      await saveWorkout(workoutData);
+
+      // Afficher l'alerte de confirmation
+      Alert.alert(
+        "Félicitations ! 🎉",
+        `Tu as terminé ta séance et brûlé ${totalCalories} calories !`,
+        [
+          { 
+            text: "Super !", 
+            onPress: () => {
+              router.replace("/(tabs)/");  // Utiliser replace au lieu de navigate
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde :', error);
+      Alert.alert(
+        "Erreur",
+        "Une erreur est survenue lors de la sauvegarde de l'entraînement"
+      );
+    }
   };
   
   // Gérer l'annulation de l'entraînement
@@ -178,6 +230,17 @@ export default function StepWorkout() {
         { text: "Quitter", style: "destructive", onPress: () => router.navigate("/(tabs)/") }
       ]
     );
+  };
+
+  const nextExercise = workout.exercises[currentExerciseIndex + 1];
+
+  const generateYouTubeLink = (exerciseName) => {
+    const searchQuery = encodeURIComponent(`${exerciseName} exercice tutorial`);
+    return `https://www.youtube.com/results?search_query=${searchQuery}`;
+  };
+
+  const handleYouTubePress = async (exerciseName) => {
+    setShowYoutubeModal(true);
   };
 
   return (
@@ -212,6 +275,7 @@ export default function StepWorkout() {
           onComplete={handlePauseComplete} 
           onSkip={handleSkipPause}
           isExerciseTransition={isExerciseTransition}
+          nextExercise={nextExercise}
         />
       ) : (
         <View style={styles.exerciseContainer}>
@@ -222,8 +286,9 @@ export default function StepWorkout() {
               color="#3b82f6" 
             />
             <Text style={styles.exerciseName}>{currentExercise.name}</Text>
+            <Text style={styles.equipmentText}>{currentExercise.equip}</Text>
             <Text style={styles.setInfo}>
-              Série {currentSetIndex + 1}/{totalSets}
+              Série {currentSetIndex + 1}/{totalSets} - {currentExercise.sets}
             </Text>
           </View>
           
@@ -241,6 +306,7 @@ export default function StepWorkout() {
               <Text style={styles.repText}>
                 {currentExercise.sets?.split("×")[1]?.trim() || "12 répétitions"}
               </Text>
+              <Text style={styles.descriptionText}>{currentExercise.desc}</Text>
               
               {currentExercise.videoId && (
                 <TouchableOpacity 
@@ -260,6 +326,49 @@ export default function StepWorkout() {
               </TouchableOpacity>
             </View>
           )}
+
+          <TouchableOpacity 
+            style={styles.youtubeButton}
+            onPress={() => handleYouTubePress(currentExercise.name)}
+          >
+            <MaterialCommunityIcons name="youtube" size={24} color="#FF0000" />
+            <Text style={styles.youtubeButtonText}>Voir des tutoriels</Text>
+          </TouchableOpacity>
+
+          {/* Modal YouTube */}
+          <Modal
+            visible={showYoutubeModal}
+            transparent={true}
+            animationType="slide"
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.youtubeModalContent}>
+                <Text style={styles.modalTitle}>Tutoriels YouTube</Text>
+                <Text style={styles.modalText}>
+                  Voulez-vous voir des tutoriels pour {currentExercise.name} ?
+                </Text>
+                
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity 
+                    style={styles.modalButton}
+                    onPress={() => {
+                      Linking.openURL(generateYouTubeLink(currentExercise.name));
+                      setShowYoutubeModal(false);
+                    }}
+                  >
+                    <Text style={styles.modalButtonText}>Ouvrir YouTube</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={[styles.modalButton, styles.modalButtonCancel]}
+                    onPress={() => setShowYoutubeModal(false)}
+                  >
+                    <Text style={styles.modalButtonTextCancel}>Annuler</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
         </View>
       )}
       
@@ -386,6 +495,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: "center",
   },
+  equipmentText: {
+    fontSize: 16,
+    color: '#3b82f6',
+    marginTop: 8,
+    fontWeight: '500',
+  },
   setInfo: {
     fontSize: 18,
     color: "#6b7280",
@@ -449,11 +564,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   skipButton: {
-    marginTop: 32,
     backgroundColor: "#f3f4f6",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
+    alignItems: "center",
+    marginTop: 20,
   },
   skipButtonText: {
     fontSize: 16,
@@ -541,5 +657,104 @@ const styles = StyleSheet.create({
     color: "#ef4444",
     fontWeight: "500",
     marginLeft: 8,
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#374151",
+    textAlign: "center",
+    marginTop: 100,
+  },
+  nextExerciseInfo: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 8,
+    marginVertical: 16,
+    width: '100%',
+    alignItems: 'center',
+  },
+  nextExerciseTitle: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  nextExerciseName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  nextExerciseEquip: {
+    fontSize: 16,
+    color: '#3b82f6',
+    marginBottom: 4,
+  },
+  nextExerciseSets: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginHorizontal: 20,
+    marginVertical: 12,
+    lineHeight: 20,
+  },
+  youtubeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  youtubeButtonText: {
+    marginLeft: 8,
+    color: '#FF0000',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  youtubeModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#4b5563',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  modalButton: {
+    backgroundColor: '#FF0000',
+    padding: 12,
+    borderRadius: 8,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: '#e5e7eb',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  modalButtonTextCancel: {
+    color: '#4b5563',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ExerciseVideoModal from "../../components/ExerciseVideoModal";
-import { getWorkoutPlan } from "../../services/storage";
+import { workoutProgram } from '../../services/workoutData';
 
 export default function WorkoutScreen() {
   const [selectedDay, setSelectedDay] = useState(0);
@@ -11,7 +11,7 @@ export default function WorkoutScreen() {
   const [selectedVideoId, setSelectedVideoId] = useState("");
   const [selectedExerciseName, setSelectedExerciseName] = useState("");
   const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState([]);
+  const [workoutDays, setWorkoutDays] = useState([]);
 
   // Déterminer automatiquement le jour actuel (pour simuler une séance du jour)
   useEffect(() => {
@@ -20,26 +20,16 @@ export default function WorkoutScreen() {
     // Map le jour de la semaine à un index dans notre programme (0-6)
     // Supposons que nous commençons le lundi (jour 1) et que nous avons 7 jours par semaine
     const dayIndex = today === 0 ? 6 : today - 1; // Convertit dimanche=0 en index 6, lundi=1 en index 0, etc.
-    if (dayIndex < days.length) {
+    if (dayIndex < workoutDays.length) {
       setSelectedDay(dayIndex);
     }
-  }, [days]);
+  }, [workoutDays]);
 
   useEffect(() => {
-    loadWorkoutPlan();
+    // Utiliser directement workoutProgram au lieu de la fonction
+    setWorkoutDays(workoutProgram);
+    setLoading(false);
   }, []);
-
-  const loadWorkoutPlan = async () => {
-    try {
-      setLoading(true);
-      const plan = await getWorkoutPlan();
-      setDays(plan || []);
-    } catch (error) {
-      console.error("Erreur lors du chargement du plan:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const startWorkout = () => {
     // Navigation vers la séance d'entraînement étape par étape avec le jour sélectionné
@@ -88,18 +78,14 @@ export default function WorkoutScreen() {
       </View>
 
       <View style={styles.dayTabsContainer}>
-        {days && days.length > 0 ? (
-          days.map((day, index) => renderDayTab(day, index))
-        ) : (
-          <Text style={styles.noDataText}>Aucun programme disponible</Text>
-        )}
+        {workoutDays?.map((day, index) => renderDayTab(day, index))}
       </View>
-
+      
       <ScrollView style={styles.content}>
         <View style={styles.workoutCard}>
-          <Text style={styles.workoutTitle}>{days[selectedDay]?.title}</Text>
+          <Text style={styles.workoutTitle}>{workoutDays[selectedDay]?.title}</Text>
 
-          {days[selectedDay]?.exercises.map((exercise: Exercise, index) => (
+          {workoutDays[selectedDay]?.exercises.map((exercise: Exercise, index) => (
             <View key={index} style={styles.exerciseItem}>
               <MaterialCommunityIcons 
                 name={exercise.icon as any} 

@@ -1,5 +1,5 @@
 // Programme d'entraînement complet avec exercices détaillés
-export const days = [
+const days = [
   {
     title: 'JOUR 1: PUSH (Pectoraux, Épaules, Triceps)',
     exercises: [
@@ -536,6 +536,12 @@ export const days = [
     ],
   },
 ];
+
+// Exporter directement les données
+export const workoutProgram = days;
+
+// Remplacer la fonction par une constante exportée
+export const getWorkoutProgram = () => days;
 
 // Type pour les exercices
 export interface Exercise {

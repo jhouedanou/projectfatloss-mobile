@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveWorkoutToFirebase } from './firebaseStorage';
 
 // Clés de stockage
 const WORKOUT_HISTORY_KEY = 'workoutHistory';
@@ -55,6 +56,27 @@ export async function updateWorkoutStats(workout: any) {
     return updatedStats;
   } catch (error) {
     console.error('Erreur lors de la mise à jour des stats:', error);
+    throw error;
+  }
+}
+
+export async function saveWorkout(workout) {
+  try {
+    // Sauvegarder localement
+    const history = await getWorkoutHistory();
+    if (!workout.date) {
+      workout.date = new Date().toISOString();
+    }
+    history.push(workout);
+    await AsyncStorage.setItem(WORKOUT_HISTORY_KEY, JSON.stringify(history));
+    
+    // Sauvegarder dans Firebase
+    await saveWorkoutToFirebase(workout);
+    
+    // Mettre à jour les statistiques
+    await updateWorkoutStats(workout);
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde:', error);
     throw error;
   }
 }

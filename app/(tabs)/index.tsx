@@ -1,12 +1,13 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getWorkoutStats } from "../../services/storage";
-import { days } from "../../services/workoutData";
+import { workoutProgram } from "../../services/workoutData";
 
 export default function HomeScreen() {
-  // État pour suivre le jour actuel
+  const [days, setDays] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentDay, setCurrentDay] = useState(0);
   const [fatBurnerMode, setFatBurnerMode] = useState(false);
   const [stats, setStats] = useState({
@@ -14,6 +15,12 @@ export default function HomeScreen() {
     totalCalories: 0,
     totalWeightLifted: 0
   });
+
+  // Charger le programme d'entraînement
+  useEffect(() => {
+    setDays(workoutProgram);
+    setLoading(false);
+  }, []);
 
   // Déterminer automatiquement le jour actuel (pour synchroniser avec l'écran des séances)
   useEffect(() => {
@@ -25,7 +32,7 @@ export default function HomeScreen() {
     if (dayIndex < days.length) {
       setCurrentDay(dayIndex);
     }
-  }, []);
+  }, [days]);
 
   // Obtenir les données de la séance du jour actuel
   const todayWorkout = days[currentDay];
@@ -51,6 +58,19 @@ export default function HomeScreen() {
     }
   };
 
+  if (loading || !days || days.length === 0) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text style={styles.loadingText}>Chargement du programme...</Text>
+      </View>
+    );
+  }
+
+  // Sécuriser l'accès à todayWorkout
+  const safeDay = Math.max(0, Math.min(currentDay, days.length - 1));
+  const workoutForTheDay = days[safeDay];
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -62,10 +82,10 @@ export default function HomeScreen() {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Séance du jour</Text>
-        <Text style={styles.workoutTitle}>{todayWorkout.title}</Text>
+        <Text style={styles.workoutTitle}>{workoutForTheDay.title}</Text>
         
         <View style={styles.exerciseList}>
-          {todayWorkout.exercises.slice(0, 3).map((exercise, index) => (
+          {workoutForTheDay.exercises.slice(0, 3).map((exercise, index) => (
             <View key={index} style={styles.exerciseItem}>
               <MaterialCommunityIcons name={exercise.icon as any} size={24} color="#3b82f6" />
               <View style={styles.exerciseInfo}>
@@ -210,5 +230,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
     marginTop: 4,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#6b7280",
   },
 });
