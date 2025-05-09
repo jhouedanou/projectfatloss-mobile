@@ -1,17 +1,19 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { FirebaseContext } from '../services/FirebaseContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import theme from '../src/theme/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 // Exemple de données d'entraînement (à remplacer par la logique réelle ou la synchronisation Firebase)
 const initialWorkoutPlan = [
-  { day: 1, title: 'Jour 1', description: 'Séance cardio' },
-  { day: 2, title: 'Jour 2', description: 'Renforcement musculaire' },
-  { day: 3, title: 'Jour 3', description: 'Repos ou stretching' },
-  { day: 4, title: 'Jour 4', description: 'HIIT' },
-  { day: 5, title: 'Jour 5', description: 'Cardio léger' },
-  { day: 6, title: 'Jour 6', description: 'Plyométrie' },
-  { day: 7, title: 'Jour 7', description: 'Repos complet' },
+  { day: 1, title: 'Jour 1', description: 'Séance cardio', icon: 'heart' },
+  { day: 2, title: 'Jour 2', description: 'Renforcement musculaire', icon: 'barbell' },
+  { day: 3, title: 'Jour 3', description: 'Repos ou stretching', icon: 'body' },
+  { day: 4, title: 'Jour 4', description: 'HIIT', icon: 'flash' },
+  { day: 5, title: 'Jour 5', description: 'Cardio léger', icon: 'walk' },
+  { day: 6, title: 'Jour 6', description: 'Plyométrie', icon: 'fitness' },
+  { day: 7, title: 'Jour 7', description: 'Repos complet', icon: 'bed' },
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -35,46 +37,209 @@ export default function HomeScreen({ navigation }) {
     setCurrent(prev => (prev + 1) % workoutPlan.length);
   };
 
+  const renderNavButton = (title, screenName, icon) => (
+    <TouchableOpacity
+      style={styles.navButton}
+      onPress={() => navigation.navigate(screenName)}
+    >
+      <Ionicons name={icon} size={24} color={theme.colors.primary} />
+      <Text style={styles.navButtonText}>{title}</Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Bienvenue {user?.email}</Text>
-      <ScrollView horizontal style={styles.tabs}>
-        {workoutPlan.map((d, i) => (
-          <TouchableOpacity
-            key={i}
-            style={[styles.tab, i === current && styles.activeTab]}
-            onPress={() => setCurrent(i)}
-          >
-            <Text style={styles.tabText}>Jour {i + 1}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Bienvenue</Text>
+          <Text style={styles.subtitle}>{user?.email}</Text>
+        </View>
+        
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabs}>
+          {workoutPlan.map((d, i) => (
+            <TouchableOpacity
+              key={i}
+              style={[styles.tab, i === current && styles.activeTab]}
+              onPress={() => setCurrent(i)}
+            >
+              <Text style={[styles.tabText, i === current && styles.activeTabText]}>Jour {i + 1}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        
+        <View style={styles.workoutBox}>
+          <View style={styles.workoutIconContainer}>
+            <Ionicons 
+              name={workoutPlan[current].icon} 
+              size={40} 
+              color={theme.colors.primary} 
+            />
+          </View>
+          <Text style={styles.workoutTitle}>{workoutPlan[current].title}</Text>
+          <Text style={styles.workoutDescription}>{workoutPlan[current].description}</Text>
+          
+          <TouchableOpacity style={styles.nextButton} onPress={moveToNextDay}>
+            <Text style={styles.nextButtonText}>Séance suivante</Text>
+            <Ionicons name="arrow-forward" size={20} color={theme.colors.text} />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
-      <View style={styles.workoutBox}>
-        <Text style={styles.workoutTitle}>{workoutPlan[current].title}</Text>
-        <Text>{workoutPlan[current].description}</Text>
+        </View>
+        
+        <Text style={styles.sectionTitle}>Navigation</Text>
+        
+        <View style={styles.navButtonsGrid}>
+          {renderNavButton('Historique', 'Historique', 'time')}
+          {renderNavButton('Statistiques', 'Statistiques', 'stats-chart')}
+          {renderNavButton('Poids', 'Poids', 'scale')}
+          {renderNavButton('Personnalisation', 'Personnalisation', 'options')}
+          {renderNavButton('Calendrier', 'Calendrier', 'calendar')}
+          {renderNavButton('Synchronisation', 'Synchronisation', 'sync')}
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.logoutButton} 
+          onPress={() => logout(navigation)}
+        >
+          <Ionicons name="log-out" size={20} color={theme.colors.error} />
+          <Text style={styles.logoutButtonText}>Déconnexion</Text>
+        </TouchableOpacity>
       </View>
-      <Button title="Séance suivante" onPress={moveToNextDay} />
-      <View style={styles.navButtons}>
-        <Button title="Historique" onPress={() => navigation.navigate('Historique')} />
-        <Button title="Statistiques" onPress={() => navigation.navigate('Statistiques')} />
-        <Button title="Poids" onPress={() => navigation.navigate('Poids')} />
-        <Button title="Personnalisation" onPress={() => navigation.navigate('Personnalisation')} />
-        <Button title="Calendrier" onPress={() => navigation.navigate('Calendrier')} />
-        <Button title="Synchronisation" onPress={() => navigation.navigate('Synchronisation')} />
-      </View>
-      <Button title="Déconnexion" onPress={() => logout(navigation)} />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 },
-  title: { fontSize: 22, marginBottom: 16 },
-  tabs: { flexGrow: 0, marginBottom: 16 },
-  tab: { padding: 10, backgroundColor: '#eee', marginHorizontal: 4, borderRadius: 6 },
-  activeTab: { backgroundColor: '#2196F3' },
-  tabText: { color: '#222' },
-  workoutBox: { backgroundColor: '#fafafa', padding: 16, borderRadius: 8, marginBottom: 16, alignItems: 'center', width: 300 },
-  workoutTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
-  navButtons: { width: '100%', marginVertical: 16 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  container: { 
+    flex: 1, 
+    padding: theme.spacing.m,
+  },
+  header: {
+    marginBottom: theme.spacing.l,
+  },
+  title: { 
+    fontSize: theme.typography.fontSizes.xlarge, 
+    fontWeight: theme.typography.fontWeights.bold,
+    color: theme.colors.text,
+  },
+  subtitle: {
+    fontSize: theme.typography.fontSizes.medium,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs,
+  },
+  sectionTitle: {
+    fontSize: theme.typography.fontSizes.large,
+    fontWeight: theme.typography.fontWeights.medium,
+    color: theme.colors.text,
+    marginVertical: theme.spacing.m,
+  },
+  tabs: { 
+    flexGrow: 0, 
+    marginBottom: theme.spacing.m,
+  },
+  tab: { 
+    padding: theme.spacing.m, 
+    backgroundColor: theme.colors.tabInactive, 
+    marginRight: theme.spacing.s, 
+    borderRadius: theme.borderRadius.medium,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  activeTab: { 
+    backgroundColor: theme.colors.tabActive,
+    ...theme.shadows.small,
+  },
+  tabText: { 
+    color: theme.colors.textSecondary,
+    fontWeight: theme.typography.fontWeights.medium,
+  },
+  activeTabText: {
+    color: theme.colors.text,
+    fontWeight: theme.typography.fontWeights.bold,
+  },
+  workoutBox: { 
+    backgroundColor: theme.colors.surface, 
+    padding: theme.spacing.l, 
+    borderRadius: theme.borderRadius.large, 
+    marginBottom: theme.spacing.l, 
+    alignItems: 'center', 
+    width: '100%',
+    ...theme.shadows.medium,
+  },
+  workoutIconContainer: {
+    backgroundColor: theme.colors.background,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.m,
+    ...theme.shadows.small,
+  },
+  workoutTitle: { 
+    fontSize: theme.typography.fontSizes.large, 
+    fontWeight: theme.typography.fontWeights.bold, 
+    marginBottom: theme.spacing.s,
+    color: theme.colors.text,
+  },
+  workoutDescription: {
+    fontSize: theme.typography.fontSizes.medium,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.l,
+    textAlign: 'center',
+  },
+  nextButton: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.m,
+    paddingHorizontal: theme.spacing.l,
+    borderRadius: theme.borderRadius.medium,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...theme.shadows.small,
+  },
+  nextButtonText: {
+    color: theme.colors.text,
+    fontWeight: theme.typography.fontWeights.bold,
+    marginRight: theme.spacing.s,
+  },
+  navButtonsGrid: { 
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.l,
+  },
+  navButton: {
+    width: '48%',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.m,
+    marginBottom: theme.spacing.m,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...theme.shadows.small,
+  },
+  navButtonText: {
+    color: theme.colors.text,
+    marginTop: theme.spacing.s,
+    fontWeight: theme.typography.fontWeights.medium,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing.m,
+    borderWidth: 1,
+    borderColor: theme.colors.error,
+    borderRadius: theme.borderRadius.medium,
+    marginTop: theme.spacing.m,
+  },
+  logoutButtonText: {
+    color: theme.colors.error,
+    marginLeft: theme.spacing.s,
+    fontWeight: theme.typography.fontWeights.medium,
+  },
 });
