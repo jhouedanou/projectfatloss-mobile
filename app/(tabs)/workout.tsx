@@ -1,52 +1,51 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-
-// Exemple de données pour les séances d'entraînement - à remplacer par les vraies données
-const workoutDays = [
-  {
-    title: "Jour 1 - Haut du corps",
-    exercises: [
-      { name: "Pompes", sets: "4 x 12", icon: "arm-flex" },
-      { name: "Développé épaules", sets: "3 x 15", icon: "weight-lifter" },
-      { name: "Tractions", sets: "4 x 8", icon: "human-handsup" },
-    ],
-  },
-  {
-    title: "Jour 2 - Bas du corps",
-    exercises: [
-      { name: "Squats", sets: "4 x 15", icon: "human-handsdown" },
-      { name: "Fentes", sets: "3 x 12 (chaque jambe)", icon: "run" },
-      { name: "Extensions", sets: "3 x 15", icon: "human-male" },
-    ],
-  },
-  {
-    title: "Jour 3 - Full Body",
-    exercises: [
-      { name: "Burpees", sets: "4 x 10", icon: "human-handsup" },
-      { name: "Mountain Climbers", sets: "3 x 20", icon: "run-fast" },
-      { name: "Jumping Jacks", sets: "3 x 30", icon: "human-greeting" },
-    ],
-  },
-];
+import { days, Exercise } from "../../services/WorkoutData";
+import ExerciseVideoModal from "../../components/ExerciseVideoModal";
 
 export default function WorkoutScreen() {
   const [selectedDay, setSelectedDay] = useState(0);
+  const [videoModalVisible, setVideoModalVisible] = useState(false);
+  const [selectedVideoId, setSelectedVideoId] = useState("");
+  const [selectedExerciseName, setSelectedExerciseName] = useState("");
+
+  // Déterminer automatiquement le jour actuel (pour simuler une séance du jour)
+  useEffect(() => {
+    // En pratique, cela pourrait être basé sur la date actuelle ou les préférences de l'utilisateur
+    const today = new Date().getDay(); // 0 = dimanche, 1 = lundi, etc.
+    // Map le jour de la semaine à un index dans notre programme (0-6)
+    // Supposons que nous commençons le lundi (jour 1) et que nous avons 7 jours par semaine
+    const dayIndex = today === 0 ? 6 : today - 1; // Convertit dimanche=0 en index 6, lundi=1 en index 0, etc.
+    if (dayIndex < days.length) {
+      setSelectedDay(dayIndex);
+    }
+  }, []);
 
   const startWorkout = () => {
-    // Navigation vers la séance d'entraînement étape par étape (à implémenter)
-    router.navigate("/step-workout");
+    // Navigation vers la séance d'entraînement étape par étape avec le jour sélectionné
+    router.navigate({
+      pathname: "/step-workout",
+      params: { dayIndex: selectedDay.toString() }
+    });
   };
 
-  const renderDayTab = (day, index) => (
+  const handleOpenVideo = (videoId: string, exerciseName: string) => {
+    setSelectedVideoId(videoId);
+    setSelectedExerciseName(exerciseName);
+    setVideoModalVisible(true);
+  };
+
+  // Rendre la liste des jours plus compacte avec des boutons numérotés
+  const renderDayTab = (day: any, index: number) => (
     <TouchableOpacity
       key={index}
       style={[styles.dayTab, index === selectedDay && styles.dayTabActive]}
       onPress={() => setSelectedDay(index)}
     >
       <Text style={[styles.dayTabText, index === selectedDay && styles.dayTabTextActive]}>
-        Jour {index + 1}
+        {index + 1}
       </Text>
     </TouchableOpacity>
   );
@@ -54,24 +53,40 @@ export default function WorkoutScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Programme d'entraînement</Text>
+        <Text style={styles.headerTitle}>Séances</Text>
       </View>
 
-      <ScrollView horizontal style={styles.dayTabs} showsHorizontalScrollIndicator={false}>
-        {workoutDays.map((day, index) => renderDayTab(day, index))}
-      </ScrollView>
+      <View style={styles.programHeader}>
+        <Text style={styles.programTitle}>Programme d'entraînement</Text>
+      </View>
+
+      <View style={styles.dayTabsContainer}>
+        {days.map((day, index) => renderDayTab(day, index))}
+      </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.workoutCard}>
-          <Text style={styles.workoutTitle}>{workoutDays[selectedDay].title}</Text>
+          <Text style={styles.workoutTitle}>{days[selectedDay].title}</Text>
 
-          {workoutDays[selectedDay].exercises.map((exercise, index) => (
+          {days[selectedDay].exercises.map((exercise: Exercise, index) => (
             <View key={index} style={styles.exerciseItem}>
-              <MaterialCommunityIcons name={exercise.icon} size={24} color="#3b82f6" />
+              <MaterialCommunityIcons 
+                name={exercise.icon as any} 
+                size={24} 
+                color="#3b82f6" 
+              />
               <View style={styles.exerciseInfo}>
                 <Text style={styles.exerciseName}>{exercise.name}</Text>
-                <Text style={styles.exerciseSets}>{exercise.sets}</Text>
+                <Text style={styles.exerciseSets}>{exercise.sets} - {exercise.equip}</Text>
               </View>
+              {exercise.videoId && (
+                <TouchableOpacity
+                  style={styles.videoButton}
+                  onPress={() => handleOpenVideo(exercise.videoId || "", exercise.name)}
+                >
+                  <MaterialCommunityIcons name="youtube" size={24} color="#f87171" />
+                </TouchableOpacity>
+              )}
             </View>
           ))}
 
@@ -83,7 +98,7 @@ export default function WorkoutScreen() {
         <View style={styles.customizeSection}>
           <Text style={styles.sectionTitle}>Personnalisation</Text>
           <Text style={styles.sectionDescription}>
-            Personnalisez votre programme d'entraînement en fonction de vos objectifs et de votre
+            Personnalisez votre programme d&apos;entraînement en fonction de vos objectifs et de votre
             niveau.
           </Text>
           <TouchableOpacity style={styles.customizeButton}>
@@ -92,9 +107,18 @@ export default function WorkoutScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <ExerciseVideoModal
+        isVisible={videoModalVisible}
+        videoId={selectedVideoId}
+        exerciseName={selectedExerciseName}
+        onClose={() => setVideoModalVisible(false)}
+      />
     </View>
   );
 }
+
+const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -111,16 +135,32 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  dayTabs: {
+  programHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: "#fff",
-    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  programTitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#374151",
+  },
+  dayTabsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
   },
   dayTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginHorizontal: 4,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 20,
     backgroundColor: "#f3f4f6",
   },
@@ -162,6 +202,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#f3f4f6",
   },
   exerciseInfo: {
+    flex: 1,
     marginLeft: 12,
   },
   exerciseName: {
@@ -171,6 +212,10 @@ const styles = StyleSheet.create({
   exerciseSets: {
     fontSize: 14,
     color: "#6b7280",
+  },
+  videoButton: {
+    padding: 8,
+    borderRadius: 20,
   },
   startButton: {
     backgroundColor: "#3b82f6",

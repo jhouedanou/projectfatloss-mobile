@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert } fr
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { days, Exercise } from "../services/WorkoutData";
+import ExerciseVideoModal from "../components/ExerciseVideoModal";
 
 // Composant pour afficher le timer
 function Timer({ duration, running, onComplete }) {
@@ -60,6 +62,9 @@ function PauseScreen({ duration, onComplete, onSkip, isExerciseTransition }) {
 
 // Écran principal pour la séance étape par étape
 export default function StepWorkout() {
+  const { dayIndex = "0" } = useLocalSearchParams();
+  const dayId = parseInt(dayIndex as string, 10) || 0;
+  
   // État pour suivre la progression
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
@@ -69,40 +74,17 @@ export default function StepWorkout() {
   const [totalCalories, setTotalCalories] = useState(0);
   const [calorieAnimation, setCalorieAnimation] = useState(false);
   
+  // État pour le modal de vidéo
+  const [videoModalVisible, setVideoModalVisible] = useState(false);
+  
   // Options
   const [fatBurnerMode, setFatBurnerMode] = useState(false);
   
   // Définir la durée de pause selon le mode
   const pauseDuration = fatBurnerMode ? 10 : 30;
   
-  // Exemple de données d'entraînement (à remplacer par des données réelles dans le futur)
-  const workout = {
-    title: "Jour 1 - Haut du corps",
-    exercises: [
-      { 
-        name: "Pompes", 
-        sets: "3 × 12", 
-        icon: "arm-flex", 
-        calories: 8,
-        timer: false
-      },
-      { 
-        name: "Développé épaules", 
-        sets: "3 × 15", 
-        icon: "weight-lifter", 
-        calories: 10,
-        timer: false
-      },
-      { 
-        name: "Planche", 
-        sets: "3 × 30s", 
-        icon: "human-handsdown", 
-        calories: 7,
-        timer: true,
-        duration: 30
-      }
-    ]
-  };
+  // Utilisation des vraies données d'exercices
+  const workout = days[dayId];
   
   // Extraire le nombre de séries pour l'exercice actuel
   const getSetCount = (sets) => {
@@ -115,10 +97,21 @@ export default function StepWorkout() {
   const isLastSet = currentSetIndex === totalSets - 1;
   const isLastExercise = currentExerciseIndex === workout.exercises.length - 1;
   
+  // Ouvrir le modal de vidéo
+  const handleOpenVideo = () => {
+    if (currentExercise.videoId) {
+      setVideoModalVisible(true);
+    }
+  };
+  
   // Gérer l'achèvement d'une série
   const handleSetComplete = () => {
-    // Ajouter des calories
-    const caloriesEarned = currentExercise.calories || 5;
+    // Ajouter des calories (utiliser la moyenne de caloriesPerSet)
+    const caloriesPotential = currentExercise.caloriesPerSet || [5, 10];
+    const caloriesEarned = Math.floor(
+      caloriesPotential.reduce((a, b) => a + b, 0) / caloriesPotential.length
+    );
+    
     setTotalCalories(prev => prev + caloriesEarned);
     
     // Déclencher l'animation des calories
@@ -248,6 +241,17 @@ export default function StepWorkout() {
               <Text style={styles.repText}>
                 {currentExercise.sets?.split("×")[1]?.trim() || "12 répétitions"}
               </Text>
+              
+              {currentExercise.videoId && (
+                <TouchableOpacity 
+                  style={styles.videoButton} 
+                  onPress={handleOpenVideo}
+                >
+                  <MaterialCommunityIcons name="youtube" size={24} color="#f87171" />
+                  <Text style={styles.videoButtonText}>Voir la vidéo</Text>
+                </TouchableOpacity>
+              )}
+              
               <TouchableOpacity 
                 style={styles.doneButton} 
                 onPress={handleSetComplete}
@@ -263,7 +267,10 @@ export default function StepWorkout() {
       {calorieAnimation && (
         <View style={styles.calorieAnimation}>
           <Text style={styles.calorieAnimationText}>
-            +{currentExercise.calories || 5} calories !
+            +{Math.floor(
+              (currentExercise.caloriesPerSet || [5, 10]).reduce((a, b) => a + b, 0) / 
+              (currentExercise.caloriesPerSet || [5, 10]).length
+            )} calories !
           </Text>
         </View>
       )}
@@ -307,6 +314,14 @@ export default function StepWorkout() {
           </View>
         </View>
       </Modal>
+      
+      {/* Modal de vidéo d'exercice */}
+      <ExerciseVideoModal
+        isVisible={videoModalVisible}
+        videoId={currentExercise.videoId || ""}
+        exerciseName={currentExercise.name || ""}
+        onClose={() => setVideoModalVisible(false)}
+      />
     </View>
   );
 }
@@ -512,5 +527,19 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  videoButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fee2e2",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  videoButtonText: {
+    color: "#ef4444",
+    fontWeight: "500",
+    marginLeft: 8,
   },
 });

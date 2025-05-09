@@ -1,16 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-
-// Import des composants nécessaires (à implémenter plus tard)
-// import { LineChart } from "react-native-chart-kit";
+import { LineChart } from "react-native-chart-kit";
 
 // Exemple de données pour les statistiques
 const mockWorkoutHistory = [
-  { date: "2025-05-05", calories: 280, title: "Jour 1 - Haut du corps" },
-  { date: "2025-05-03", calories: 320, title: "Jour 2 - Bas du corps" },
-  { date: "2025-05-01", calories: 350, title: "Jour 3 - Full Body" },
-  { date: "2025-04-29", calories: 280, title: "Jour 1 - Haut du corps" },
+  { date: "2025-05-07", calories: 310, title: "Jour 5 - Pull (Variation)" },
+  { date: "2025-05-05", calories: 280, title: "Jour 1 - Push (Pectoraux, Épaules, Triceps)" },
+  { date: "2025-05-03", calories: 320, title: "Jour 2 - Pull (Dos, Biceps)" },
+  { date: "2025-05-01", calories: 350, title: "Jour 3 - Legs (Jambes, Fessiers)" },
+  { date: "2025-04-29", calories: 300, title: "Jour 4 - Push (Variation)" },
+  { date: "2025-04-27", calories: 330, title: "Jour 6 - Legs (Variation)" },
 ];
 
 const mockWeightData = [
@@ -20,8 +20,68 @@ const mockWeightData = [
   { date: "2025-04-17", weight: 81.3 },
 ];
 
+// Préparer les données pour le graphique des calories
+const caloriesChartData = {
+  labels: mockWorkoutHistory.slice(0, 5).map(workout => {
+    const date = new Date(workout.date);
+    return `${date.getDate()}/${date.getMonth() + 1}`;
+  }).reverse(),
+  datasets: [
+    {
+      data: mockWorkoutHistory.slice(0, 5).map(workout => workout.calories).reverse(),
+      color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // bleu
+      strokeWidth: 2
+    }
+  ],
+  legend: ["Calories brûlées"]
+};
+
+// Préparer les données pour le graphique de poids
+const weightChartData = {
+  labels: mockWeightData.map(item => {
+    const date = new Date(item.date);
+    return `${date.getDate()}/${date.getMonth() + 1}`;
+  }),
+  datasets: [
+    {
+      data: mockWeightData.map(item => item.weight),
+      color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`, // rouge
+      strokeWidth: 2
+    }
+  ],
+  legend: ["Poids (kg)"]
+};
+
+const chartConfig = {
+  backgroundGradientFrom: "#ffffff",
+  backgroundGradientTo: "#ffffff",
+  decimalPlaces: 0,
+  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+  style: {
+    borderRadius: 16
+  },
+  propsForDots: {
+    r: "5",
+    strokeWidth: "2",
+    stroke: "#3b82f6"
+  }
+};
+
+const weightChartConfig = {
+  ...chartConfig,
+  decimalPlaces: 1,
+  color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
+  propsForDots: {
+    r: "5",
+    strokeWidth: "2",
+    stroke: "#ef4444"
+  }
+};
+
 export default function StatsScreen() {
   const [activeTab, setActiveTab] = useState("workouts"); // "workouts" ou "weight"
+  const screenWidth = Dimensions.get("window").width - 32; // Ajuster la largeur pour les marges
 
   const getTotalCalories = () => {
     return mockWorkoutHistory.reduce((total, workout) => total + workout.calories, 0);
@@ -29,7 +89,7 @@ export default function StatsScreen() {
 
   const getWeightLoss = () => {
     if (mockWeightData.length >= 2) {
-      return mockWeightData[0].weight - mockWeightData[mockWeightData.length - 1].weight;
+      return (mockWeightData[mockWeightData.length - 1].weight - mockWeightData[0].weight).toFixed(1);
     }
     return 0;
   };
@@ -62,44 +122,49 @@ export default function StatsScreen() {
       <ScrollView style={styles.content}>
         {activeTab === "workouts" ? (
           <>
-            <View style={styles.statsOverview}>
-              <View style={styles.statCard}>
-                <MaterialCommunityIcons name="fire" size={28} color="#f97316" />
-                <Text style={styles.statValue}>{getTotalCalories()}</Text>
-                <Text style={styles.statLabel}>Calories</Text>
-              </View>
-              <View style={styles.statCard}>
-                <MaterialCommunityIcons name="calendar-check" size={28} color="#3b82f6" />
+            <View style={styles.statsCard}>
+              <View style={styles.statItem}>
                 <Text style={styles.statValue}>{mockWorkoutHistory.length}</Text>
                 <Text style={styles.statLabel}>Séances</Text>
               </View>
-              <View style={styles.statCard}>
-                <MaterialCommunityIcons name="dumbbell" size={28} color="#10b981" />
-                <Text style={styles.statValue}>320kg</Text>
-                <Text style={styles.statLabel}>Soulevé</Text>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>{getTotalCalories()}</Text>
+                <Text style={styles.statLabel}>Calories</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>16h</Text>
+                <Text style={styles.statLabel}>Temps total</Text>
               </View>
             </View>
 
-            <View style={styles.chartSection}>
-              <Text style={styles.sectionTitle}>Évolution des calories</Text>
-              <View style={styles.chartPlaceholder}>
-                <Text>Graphique des calories brûlées</Text>
-                <Text>(À implémenter avec react-native-chart-kit)</Text>
-              </View>
+            <View style={styles.chartCard}>
+              <Text style={styles.chartTitle}>Calories brûlées</Text>
+              <LineChart
+                data={caloriesChartData}
+                width={screenWidth}
+                height={220}
+                chartConfig={chartConfig}
+                bezier
+                style={styles.chart}
+              />
             </View>
 
-            <View style={styles.historySection}>
-              <Text style={styles.sectionTitle}>Historique récent</Text>
+            <View style={styles.historyCard}>
+              <Text style={styles.historyTitle}>Historique des entraînements</Text>
               {mockWorkoutHistory.map((workout, index) => (
                 <View key={index} style={styles.historyItem}>
-                  <View style={styles.historyItemContent}>
-                    <Text style={styles.historyItemTitle}>{workout.title}</Text>
-                    <Text style={styles.historyItemDate}>
-                      {new Date(workout.date).toLocaleDateString()}
+                  <View style={styles.historyLeft}>
+                    <Text style={styles.historyDate}>
+                      {new Date(workout.date).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short"
+                      })}
                     </Text>
+                    <Text style={styles.historyName}>{workout.title}</Text>
                   </View>
-                  <View style={styles.historyItemStats}>
-                    <Text style={styles.historyItemCalories}>{workout.calories} cal</Text>
+                  <View style={styles.historyRight}>
+                    <MaterialCommunityIcons name="fire" size={16} color="#f97316" />
+                    <Text style={styles.historyCalories}>{workout.calories}</Text>
                   </View>
                 </View>
               ))}
@@ -107,58 +172,54 @@ export default function StatsScreen() {
           </>
         ) : (
           <>
-            <View style={styles.statsOverview}>
-              <View style={[styles.statCard, styles.weightStatCard]}>
-                <MaterialCommunityIcons name="scale" size={28} color="#3b82f6" />
+            <View style={styles.statsCard}>
+              <View style={styles.statItem}>
                 <Text style={styles.statValue}>
-                  {mockWeightData.length > 0 ? mockWeightData[0].weight : "--"} kg
+                  {mockWeightData[0].weight} kg
                 </Text>
                 <Text style={styles.statLabel}>Poids actuel</Text>
               </View>
-              <View style={[styles.statCard, styles.weightStatCard]}>
-                <MaterialCommunityIcons
-                  name="trending-down"
-                  size={28}
-                  color={getWeightLoss() > 0 ? "#10b981" : "#6b7280"}
-                />
-                <Text
-                  style={[
-                    styles.statValue,
-                    { color: getWeightLoss() > 0 ? "#10b981" : "#6b7280" },
-                  ]}
-                >
-                  {getWeightLoss().toFixed(1)} kg
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, parseFloat(getWeightLoss()) > 0 ? styles.negativeChange : styles.positiveChange]}>
+                  {getWeightLoss() > 0 ? `+${getWeightLoss()}` : getWeightLoss()} kg
                 </Text>
-                <Text style={styles.statLabel}>Perte</Text>
+                <Text style={styles.statLabel}>Changement</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>
+                  {(mockWeightData[0].weight / Math.pow(1.75, 2)).toFixed(1)}
+                </Text>
+                <Text style={styles.statLabel}>IMC</Text>
               </View>
             </View>
 
-            <View style={styles.chartSection}>
-              <Text style={styles.sectionTitle}>Évolution du poids</Text>
-              <View style={styles.chartPlaceholder}>
-                <Text>Graphique de l'évolution du poids</Text>
-                <Text>(À implémenter avec react-native-chart-kit)</Text>
-              </View>
+            <View style={styles.chartCard}>
+              <Text style={styles.chartTitle}>Évolution du poids</Text>
+              <LineChart
+                data={weightChartData}
+                width={screenWidth}
+                height={220}
+                chartConfig={weightChartConfig}
+                bezier
+                style={styles.chart}
+              />
             </View>
 
-            <View style={styles.historySection}>
-              <Text style={styles.sectionTitle}>Historique des pesées</Text>
-              {mockWeightData.map((entry, index) => (
+            <View style={styles.historyCard}>
+              <Text style={styles.historyTitle}>Suivi du poids</Text>
+              {mockWeightData.map((data, index) => (
                 <View key={index} style={styles.historyItem}>
-                  <View style={styles.historyItemContent}>
-                    <Text style={styles.historyItemTitle}>{entry.weight} kg</Text>
-                    <Text style={styles.historyItemDate}>
-                      {new Date(entry.date).toLocaleDateString()}
-                    </Text>
-                  </View>
+                  <Text style={styles.historyDate}>
+                    {new Date(data.date).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric"
+                    })}
+                  </Text>
+                  <Text style={styles.weightValue}>{data.weight} kg</Text>
                 </View>
               ))}
             </View>
-
-            <TouchableOpacity style={styles.addButton}>
-              <MaterialCommunityIcons name="plus" size={24} color="#fff" />
-              <Text style={styles.addButtonText}>Ajouter une pesée</Text>
-            </TouchableOpacity>
           </>
         )}
       </ScrollView>
@@ -197,82 +258,78 @@ const styles = StyleSheet.create({
     borderBottomColor: "#3b82f6",
   },
   tabText: {
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
     color: "#6b7280",
   },
   activeTabText: {
     color: "#3b82f6",
+    fontWeight: "500",
   },
   content: {
     flex: 1,
     padding: 16,
   },
-  statsOverview: {
+  statsCard: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  statCard: {
-    flex: 1,
     backgroundColor: "#fff",
     borderRadius: 8,
     padding: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 4,
+    marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
     elevation: 2,
   },
-  weightStatCard: {
-    flex: 0.5,
+  statItem: {
+    flex: 1,
+    alignItems: "center",
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
-    marginTop: 8,
+    color: "#1f2937",
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#6b7280",
     marginTop: 4,
   },
-  chartSection: {
+  chartCard: {
     backgroundColor: "#fff",
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
     elevation: 2,
   },
-  chartPlaceholder: {
-    height: 200,
-    backgroundColor: "#f3f4f6",
+  chart: {
+    marginVertical: 8,
     borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
   },
-  sectionTitle: {
-    fontSize: 16,
+  chartTitle: {
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
   },
-  historySection: {
+  historyCard: {
     backgroundColor: "#fff",
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowRadius: 4,
     elevation: 2,
+  },
+  historyTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
   },
   historyItem: {
     flexDirection: "row",
@@ -281,38 +338,36 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#f3f4f6",
   },
-  historyItemContent: {
+  historyLeft: {
     flex: 1,
   },
-  historyItemTitle: {
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  historyItemDate: {
-    fontSize: 13,
+  historyDate: {
+    fontSize: 14,
     color: "#6b7280",
-    marginTop: 2,
   },
-  historyItemStats: {
-    alignItems: "flex-end",
-  },
-  historyItemCalories: {
-    fontSize: 15,
+  historyName: {
+    fontSize: 16,
     fontWeight: "500",
-    color: "#f97316",
+    marginTop: 4,
   },
-  addButton: {
-    backgroundColor: "#3b82f6",
-    borderRadius: 8,
-    padding: 16,
+  historyRight: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
   },
-  addButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    marginLeft: 8,
+  historyCalories: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#f97316",
+    marginLeft: 4,
+  },
+  weightValue: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  positiveChange: {
+    color: "#10b981", // vert
+  },
+  negativeChange: {
+    color: "#ef4444", // rouge
   },
 });

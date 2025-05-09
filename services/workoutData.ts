@@ -10,7 +10,8 @@ export const days = [
         desc: "Position assise ou allongée, poussez les haltères vers le haut en alignant les coudes avec les épaules. Travaille les pectoraux, épaules et triceps.",
         caloriesPerSet: [10, 12],
         totalSets: 4,
-        icon: 'dumbbell'
+        icon: 'dumbbell',
+        videoId: 'QwuUZ5LUFKI'
       },
       {
         name: 'Élévations latérales',
@@ -19,7 +20,8 @@ export const days = [
         desc: "Debout, bras le long du corps, soulevez les haltères latéralement jusqu'à hauteur d'épaules. Cible le deltoïde moyen.",
         caloriesPerSet: [6, 8],
         totalSets: 4,
-        icon: 'weight-lifter'
+        icon: 'weight-lifter',
+        videoId: 'rDj1ZvkJ-uk'
       },
       {
         name: 'Développé incliné haltères',
@@ -28,7 +30,8 @@ export const days = [
         desc: "Sur banc incliné (30-45°), poussez les haltères vers le haut. Accentue le travail du haut des pectoraux.",
         caloriesPerSet: [8, 10],
         totalSets: 3,
-        icon: 'dumbbell'
+        icon: 'dumbbell',
+        videoId: 'cbMom-quxWI'
       },
       {
         name: 'Élévations frontales',
@@ -37,7 +40,8 @@ export const days = [
         desc: "Debout, bras devant vous, soulevez les haltères jusqu'à hauteur d'épaules. Cible le deltoïde antérieur.",
         caloriesPerSet: [6, 8],
         totalSets: 3,
-        icon: 'arm-flex'
+        icon: 'arm-flex',
+        videoId: 'EK1ENvsKtgg'
       },
       {
         name: 'Extensions triceps',
@@ -46,7 +50,8 @@ export const days = [
         desc: "Allongé ou assis, haltère tenu à deux mains au-dessus de la tête, pliez les coudes puis tendez les bras. Isole les triceps.",
         caloriesPerSet: [8, 10],
         totalSets: 3,
-        icon: 'human-handsup'
+        icon: 'human-handsup',
+        videoId: '-Vyt2QdsR7E'
       },
       {
         name: 'Dips lestés',
@@ -55,7 +60,8 @@ export const days = [
         desc: "Mains sur un banc/chaise, fléchissez les coudes pour descendre le corps puis remontez. Travaille triceps et pectoraux.",
         caloriesPerSet: [10, 12],
         totalSets: 3,
-        icon: 'arm-flex'
+        icon: 'arm-flex',
+        videoId: 'c3ZGl4pAwZ4'
       },
       {
         name: 'Crunchs lestés',
@@ -64,7 +70,8 @@ export const days = [
         desc: "Allongé sur le dos, haltère sur la poitrine, soulevez les épaules du sol. Intensifie le travail abdominal.",
         caloriesPerSet: [6, 8],
         totalSets: 3,
-        icon: 'human-handsdown'
+        icon: 'human-handsdown',
+        videoId: 'Kh3AVt8GNkI'
       },
       {
         name: 'Planche lestée',
@@ -75,7 +82,8 @@ export const days = [
         duration: 60,
         caloriesPerSet: [4, 6],
         totalSets: 3,
-        icon: 'human-handsdown'
+        icon: 'human-handsdown',
+        videoId: 'zaqEbhYXxGY'
       },
     ],
   },
@@ -89,7 +97,8 @@ export const days = [
         desc: "Un genou et une main sur un banc, tirez l'haltère vers la hanche en gardant le coude près du corps. Isole un côté du dos à la fois.",
         caloriesPerSet: [8, 10],
         totalSets: 4,
-        icon: 'arm-flex'
+        icon: 'arm-flex',
+        videoId: 'FW7j4QNnTQM'
       },
       {
         name: 'Rowing barre',
@@ -98,7 +107,8 @@ export const days = [
         desc: "Penché en avant, dos droit, tirez la barre vers le ventre puis redescendez. Travaille l'ensemble du dos.",
         caloriesPerSet: [10, 13],
         totalSets: 4,
-        icon: 'weight-lifter'
+        icon: 'weight-lifter',
+        videoId: 'VoBGx1Vyys8'
       },
       {
         name: 'Rowing haltères deux bras',
@@ -107,7 +117,8 @@ export const days = [
         desc: "Penché en avant, tirez les haltères vers les hanches puis redescendez. Alternative au rowing barre.",
         caloriesPerSet: [8, 10],
         totalSets: 3,
-        icon: 'dumbbell'
+        icon: 'dumbbell',
+        videoId: 'w74qaRYUHzw'
       },
       {
         name: 'Curl biceps haltères',
@@ -116,7 +127,8 @@ export const days = [
         desc: "Debout, pliez les coudes pour ramener les haltères vers les épaules. Cible les biceps.",
         caloriesPerSet: [6, 8],
         totalSets: 3,
-        icon: 'arm-flex'
+        icon: 'arm-flex',
+        videoId: 'av7-8igSXTs'
       },
       {
         name: 'Curl marteau',
@@ -125,7 +137,8 @@ export const days = [
         desc: "Comme le curl biceps mais paumes face à face. Travaille biceps et avant-bras.",
         caloriesPerSet: [6, 8],
         totalSets: 3,
-        icon: 'arm-flex'
+        icon: 'arm-flex',
+        videoId: 'vtdPkZ3HIos'
       },
       {
         name: 'Shrugs',
@@ -134,7 +147,8 @@ export const days = [
         desc: "Debout, soulevez les épaules vers les oreilles sans plier les coudes. Isole les trapèzes.",
         caloriesPerSet: [5, 7],
         totalSets: 3,
-        icon: 'human-handsup'
+        icon: 'human-handsup',
+        videoId: 'g6qbq4Lf1FI'
       },
       {
         name: 'Mountain climbers lestés',
@@ -145,7 +159,8 @@ export const days = [
         duration: 30,
         caloriesPerSet: [12, 15],
         totalSets: 3,
-        icon: 'run-fast'
+        icon: 'run-fast',
+        videoId: 'bSMdJCwXKoE'
       },
       {
         name: 'Russian twists',
@@ -154,7 +169,8 @@ export const days = [
         desc: "Assis, pieds décollés, tournez le torse alternativement de chaque côté. Cible les obliques.",
         caloriesPerSet: [8, 10],
         totalSets: 3,
-        icon: 'rotate-3d'
+        icon: 'rotate-3d',
+        videoId: 'L0tf_QdKN9I'
       },
     ],
   },
@@ -527,11 +543,12 @@ export interface Exercise {
   sets: string;
   equip?: string;
   desc: string;
-  caloriesPerSet: [number, number];
+  caloriesPerSet: number[]; 
   totalSets: number;
   icon: string;
   timer?: boolean;
   duration?: number;
+  videoId?: string;
 }
 
 // Type pour les jours d'entraînement
