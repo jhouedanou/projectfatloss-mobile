@@ -2,25 +2,34 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from "react-native";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { days, Exercise } from "../../services/WorkoutData";
 
 export default function HomeScreen() {
-  // Exemple de données pour les séances d'entraînement - à remplacer par les vraies données
-  const exampleWorkout = {
-    title: "Jour 1 - Haut du corps",
-    exercises: [
-      { name: "Pompes", sets: "4 x 12", icon: "arm-flex" },
-      { name: "Développé épaules", sets: "3 x 15", icon: "weight-lifter" },
-      { name: "Tractions", sets: "4 x 8", icon: "human-handsup" },
-    ],
-  };
-
-  // État pour suivre le jour actuel (à charger depuis le stockage par la suite)
+  // État pour suivre le jour actuel
   const [currentDay, setCurrentDay] = useState(0);
   const [fatBurnerMode, setFatBurnerMode] = useState(false);
 
+  // Déterminer automatiquement le jour actuel (pour synchroniser avec l'écran des séances)
+  useEffect(() => {
+    // En pratique, cela pourrait être basé sur la date actuelle ou les préférences de l'utilisateur
+    const today = new Date().getDay(); // 0 = dimanche, 1 = lundi, etc.
+    // Map le jour de la semaine à un index dans notre programme (0-6)
+    // Supposons que nous commençons le lundi (jour 1) et que nous avons 7 jours par semaine
+    const dayIndex = today === 0 ? 6 : today - 1; // Convertit dimanche=0 en index 6, lundi=1 en index 0, etc.
+    if (dayIndex < days.length) {
+      setCurrentDay(dayIndex);
+    }
+  }, []);
+
+  // Obtenir les données de la séance du jour actuel
+  const todayWorkout = days[currentDay];
+
   // Fonction pour démarrer la séance
   const startWorkout = () => {
-    router.navigate("/workout-detail");
+    router.navigate({
+      pathname: "/step-workout",
+      params: { dayIndex: currentDay.toString() }
+    });
   };
 
   return (
@@ -34,12 +43,12 @@ export default function HomeScreen() {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Séance du jour</Text>
-        <Text style={styles.workoutTitle}>{exampleWorkout.title}</Text>
+        <Text style={styles.workoutTitle}>{todayWorkout.title}</Text>
         
         <View style={styles.exerciseList}>
-          {exampleWorkout.exercises.map((exercise, index) => (
+          {todayWorkout.exercises.slice(0, 3).map((exercise, index) => (
             <View key={index} style={styles.exerciseItem}>
-              <MaterialCommunityIcons name={exercise.icon} size={24} color="#3b82f6" />
+              <MaterialCommunityIcons name={exercise.icon as any} size={24} color="#3b82f6" />
               <View style={styles.exerciseInfo}>
                 <Text style={styles.exerciseName}>{exercise.name}</Text>
                 <Text style={styles.exerciseSets}>{exercise.sets}</Text>
