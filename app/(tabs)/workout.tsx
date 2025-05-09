@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { days, Exercise } from "../../services/WorkoutData";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import ExerciseVideoModal from "../../components/ExerciseVideoModal";
+import { getWorkoutPlan } from "../../services/storage";
 
 export default function WorkoutScreen() {
   const [selectedDay, setSelectedDay] = useState(0);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState("");
   const [selectedExerciseName, setSelectedExerciseName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState([]);
 
   // Déterminer automatiquement le jour actuel (pour simuler une séance du jour)
   useEffect(() => {
@@ -21,7 +23,23 @@ export default function WorkoutScreen() {
     if (dayIndex < days.length) {
       setSelectedDay(dayIndex);
     }
+  }, [days]);
+
+  useEffect(() => {
+    loadWorkoutPlan();
   }, []);
+
+  const loadWorkoutPlan = async () => {
+    try {
+      setLoading(true);
+      const plan = await getWorkoutPlan();
+      setDays(plan || []);
+    } catch (error) {
+      console.error("Erreur lors du chargement du plan:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const startWorkout = () => {
     // Navigation vers la séance d'entraînement étape par étape avec le jour sélectionné
@@ -50,6 +68,15 @@ export default function WorkoutScreen() {
     </TouchableOpacity>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text style={styles.loadingText}>Chargement du programme...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -61,14 +88,18 @@ export default function WorkoutScreen() {
       </View>
 
       <View style={styles.dayTabsContainer}>
-        {days.map((day, index) => renderDayTab(day, index))}
+        {days && days.length > 0 ? (
+          days.map((day, index) => renderDayTab(day, index))
+        ) : (
+          <Text style={styles.noDataText}>Aucun programme disponible</Text>
+        )}
       </View>
 
       <ScrollView style={styles.content}>
         <View style={styles.workoutCard}>
-          <Text style={styles.workoutTitle}>{days[selectedDay].title}</Text>
+          <Text style={styles.workoutTitle}>{days[selectedDay]?.title}</Text>
 
-          {days[selectedDay].exercises.map((exercise: Exercise, index) => (
+          {days[selectedDay]?.exercises.map((exercise: Exercise, index) => (
             <View key={index} style={styles.exerciseItem}>
               <MaterialCommunityIcons 
                 name={exercise.icon as any} 
@@ -264,4 +295,15 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginRight: 8,
   },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#6b7280",
+  },
+  noDataText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: "#6b7280",
+    padding: 20,
+  }
 });

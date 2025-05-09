@@ -1,56 +1,9 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Dimensions, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-
-// Exemple de données pour les statistiques
-const mockWorkoutHistory = [
-  { date: "2025-05-07", calories: 310, title: "Jour 5 - Pull (Variation)" },
-  { date: "2025-05-05", calories: 280, title: "Jour 1 - Push (Pectoraux, Épaules, Triceps)" },
-  { date: "2025-05-03", calories: 320, title: "Jour 2 - Pull (Dos, Biceps)" },
-  { date: "2025-05-01", calories: 350, title: "Jour 3 - Legs (Jambes, Fessiers)" },
-  { date: "2025-04-29", calories: 300, title: "Jour 4 - Push (Variation)" },
-  { date: "2025-04-27", calories: 330, title: "Jour 6 - Legs (Variation)" },
-];
-
-const mockWeightData = [
-  { date: "2025-05-08", weight: 78.5 },
-  { date: "2025-05-01", weight: 79.2 },
-  { date: "2025-04-24", weight: 80.1 },
-  { date: "2025-04-17", weight: 81.3 },
-];
-
-// Préparer les données pour le graphique des calories
-const caloriesChartData = {
-  labels: mockWorkoutHistory.slice(0, 5).map(workout => {
-    const date = new Date(workout.date);
-    return `${date.getDate()}/${date.getMonth() + 1}`;
-  }).reverse(),
-  datasets: [
-    {
-      data: mockWorkoutHistory.slice(0, 5).map(workout => workout.calories).reverse(),
-      color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // bleu
-      strokeWidth: 2
-    }
-  ],
-  legend: ["Calories brûlées"]
-};
-
-// Préparer les données pour le graphique de poids
-const weightChartData = {
-  labels: mockWeightData.map(item => {
-    const date = new Date(item.date);
-    return `${date.getDate()}/${date.getMonth() + 1}`;
-  }),
-  datasets: [
-    {
-      data: mockWeightData.map(item => item.weight),
-      color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`, // rouge
-      strokeWidth: 2
-    }
-  ],
-  legend: ["Poids (kg)"]
-};
+import { getWorkoutHistory, getWorkoutStats } from "../../services/storage";
+import { addWeightRecord, getWeightHistory } from "../../services/WeightStorage";
 
 const chartConfig = {
   backgroundGradientFrom: "#ffffff",
@@ -81,18 +34,147 @@ const weightChartConfig = {
 
 export default function StatsScreen() {
   const [activeTab, setActiveTab] = useState("workouts"); // "workouts" ou "weight"
+  const [loading, setLoading] = useState(true);
+  const [workoutHistory, setWorkoutHistory] = useState([]);
+  const [weightHistory, setWeightHistory] = useState([]);
+  const [workoutStats, setWorkoutStats] = useState({
+    totalSessions: 0,
+    totalCalories: 0,
+    totalDuration: 0,
+    totalWeightLifted: 0
+  });
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newWeight, setNewWeight] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0); // Pour forcer le rafraîchissement des données
+  
   const screenWidth = Dimensions.get("window").width - 32; // Ajuster la largeur pour les marges
 
-  const getTotalCalories = () => {
-    return mockWorkoutHistory.reduce((total, workout) => total + workout.calories, 0);
+  // Charger les données au démarrage et lorsque refreshKey change
+  useEffect(() => {
+    loadData();
+  }, [refreshKey]);
+
+  // Fonction pour charger toutes les données
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      // Charger l'historique des séances
+      const workouts = await getWorkoutHistory();
+      setWorkoutHistory(workouts);
+
+      // Charger les statistiques d'entraînement
+      const stats = await getWorkoutStats();
+      setWorkoutStats(stats);
+
+      // Charger l'historique des poids
+      const weights = await getWeightHistory();
+      setWeightHistory(weights);
+    } catch (error) {
+      console.error("Erreur lors du chargement des données:", error);
+      Alert.alert("Erreur", "Impossible de charger les données");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getWeightLoss = () => {
-    if (mockWeightData.length >= 2) {
-      return (mockWeightData[mockWeightData.length - 1].weight - mockWeightData[0].weight).toFixed(1);
+  // Fonction pour ajouter un nouvel enregistrement de poids
+  const handleAddWeight = async () => {
+    if (!newWeight || isNaN(parseFloat(newWeight)) || parseFloat(newWeight) <= 0) {
+      Alert.alert("Erreur", "Veuillez entrer un poids valide");
+      return;
     }
-    return 0;
+
+    try {
+      await addWeightRecord(parseFloat(newWeight));
+      setNewWeight("");
+      setModalVisible(false);
+      // Rafraîchir les données
+      setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du poids:", error);
+      Alert.alert("Erreur", "Impossible d'ajouter l'enregistrement de poids");
+    }
   };
+
+  // Préparer les données pour le graphique des calories
+  const getCaloriesChartData = () => {
+    if (workoutHistory.length === 0) {
+      return {
+        labels: [],
+        datasets: [{ data: [0], color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, strokeWidth: 2 }],
+        legend: ["Calories brûlées"]
+      };
+    }
+
+    const recentWorkouts = workoutHistory.slice(0, 5);
+    
+    return {
+      labels: recentWorkouts.map(workout => {
+        const date = new Date(workout.date);
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      }),
+      datasets: [
+        {
+          data: recentWorkouts.map(workout => workout.calories || 0),
+          color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`, // bleu
+          strokeWidth: 2
+        }
+      ],
+      legend: ["Calories brûlées"]
+    };
+  };
+
+  // Préparer les données pour le graphique de poids
+  const getWeightChartData = () => {
+    if (weightHistory.length === 0) {
+      return {
+        labels: [],
+        datasets: [{ data: [0], color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`, strokeWidth: 2 }],
+        legend: ["Poids (kg)"]
+      };
+    }
+
+    return {
+      labels: weightHistory.map(item => {
+        const date = new Date(item.date);
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      }),
+      datasets: [
+        {
+          data: weightHistory.map(item => item.weight),
+          color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`, // rouge
+          strokeWidth: 2
+        }
+      ],
+      legend: ["Poids (kg)"]
+    };
+  };
+
+  // Calculer le changement de poids
+  const getWeightChange = () => {
+    if (weightHistory.length >= 2) {
+      const latest = weightHistory[weightHistory.length - 1].weight;
+      const earliest = weightHistory[0].weight;
+      return (latest - earliest).toFixed(1);
+    }
+    return "0.0";
+  };
+
+  // Calculer l'IMC (en utilisant une taille fixe de 1.75m pour l'exemple)
+  const getBMI = () => {
+    if (weightHistory.length === 0) return "0.0";
+    const latestWeight = weightHistory[weightHistory.length - 1].weight;
+    return (latestWeight / Math.pow(1.75, 2)).toFixed(1);
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text style={styles.loadingText}>Chargement des données...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -124,50 +206,67 @@ export default function StatsScreen() {
           <>
             <View style={styles.statsCard}>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{mockWorkoutHistory.length}</Text>
+                <Text style={styles.statValue}>{workoutStats.totalSessions}</Text>
                 <Text style={styles.statLabel}>Séances</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>{getTotalCalories()}</Text>
+                <Text style={styles.statValue}>{workoutStats.totalCalories}</Text>
                 <Text style={styles.statLabel}>Calories</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>16h</Text>
-                <Text style={styles.statLabel}>Temps total</Text>
+                <Text style={styles.statValue}>{Math.round(workoutStats.totalWeightLifted)} kg</Text>
+                <Text style={styles.statLabel}>Soulevé</Text>
               </View>
             </View>
 
             <View style={styles.chartCard}>
               <Text style={styles.chartTitle}>Calories brûlées</Text>
-              <LineChart
-                data={caloriesChartData}
-                width={screenWidth}
-                height={220}
-                chartConfig={chartConfig}
-                bezier
-                style={styles.chart}
-              />
+              {workoutHistory.length > 0 ? (
+                <LineChart
+                  data={getCaloriesChartData()}
+                  width={screenWidth}
+                  height={220}
+                  chartConfig={chartConfig}
+                  bezier
+                  style={styles.chart}
+                />
+              ) : (
+                <View style={styles.noDataContainer}>
+                  <Text style={styles.noDataText}>Aucune donnée disponible</Text>
+                </View>
+              )}
             </View>
 
             <View style={styles.historyCard}>
               <Text style={styles.historyTitle}>Historique des entraînements</Text>
-              {mockWorkoutHistory.map((workout, index) => (
-                <View key={index} style={styles.historyItem}>
-                  <View style={styles.historyLeft}>
-                    <Text style={styles.historyDate}>
-                      {new Date(workout.date).toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "short"
-                      })}
-                    </Text>
-                    <Text style={styles.historyName}>{workout.title}</Text>
+              {workoutHistory.length > 0 ? (
+                workoutHistory.map((workout, index) => (
+                  <View key={index} style={styles.historyItem}>
+                    <View style={styles.historyLeft}>
+                      <Text style={styles.historyDate}>
+                        {new Date(workout.date).toLocaleDateString("fr-FR", {
+                          day: "numeric",
+                          month: "short"
+                        })}
+                      </Text>
+                      <Text style={styles.historyName}>{workout.title}</Text>
+                      {workout.exercises?.map((exercise, idx) => (
+                        <View key={idx} style={styles.exerciseItem}>
+                          <Text style={styles.exercisePause}>
+                            {exercise.restAfter ? `Pause: ${exercise.restAfter}s` : ''}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                    <View style={styles.historyRight}>
+                      <MaterialCommunityIcons name="fire" size={16} color="#f97316" />
+                      <Text style={styles.historyCalories}>{workout.calories}</Text>
+                    </View>
                   </View>
-                  <View style={styles.historyRight}>
-                    <MaterialCommunityIcons name="fire" size={16} color="#f97316" />
-                    <Text style={styles.historyCalories}>{workout.calories}</Text>
-                  </View>
-                </View>
-              ))}
+                ))
+              ) : (
+                <Text style={styles.noDataText}>Aucun entraînement enregistré</Text>
+              )}
             </View>
           </>
         ) : (
@@ -175,54 +274,112 @@ export default function StatsScreen() {
             <View style={styles.statsCard}>
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>
-                  {mockWeightData[0].weight} kg
+                  {weightHistory.length > 0 ? `${weightHistory[weightHistory.length - 1].weight} kg` : "-- kg"}
                 </Text>
                 <Text style={styles.statLabel}>Poids actuel</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, parseFloat(getWeightLoss()) > 0 ? styles.negativeChange : styles.positiveChange]}>
-                  {getWeightLoss() > 0 ? `+${getWeightLoss()}` : getWeightLoss()} kg
+                <Text style={[
+                  styles.statValue, 
+                  parseFloat(getWeightChange()) > 0 ? styles.negativeChange : styles.positiveChange
+                ]}>
+                  {getWeightChange() > 0 ? `+${getWeightChange()}` : getWeightChange()} kg
                 </Text>
                 <Text style={styles.statLabel}>Changement</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statValue}>
-                  {(mockWeightData[0].weight / Math.pow(1.75, 2)).toFixed(1)}
-                </Text>
+                <Text style={styles.statValue}>{getBMI()}</Text>
                 <Text style={styles.statLabel}>IMC</Text>
               </View>
             </View>
 
             <View style={styles.chartCard}>
               <Text style={styles.chartTitle}>Évolution du poids</Text>
-              <LineChart
-                data={weightChartData}
-                width={screenWidth}
-                height={220}
-                chartConfig={weightChartConfig}
-                bezier
-                style={styles.chart}
-              />
+              {weightHistory.length > 0 ? (
+                <LineChart
+                  data={getWeightChartData()}
+                  width={screenWidth}
+                  height={220}
+                  chartConfig={weightChartConfig}
+                  bezier
+                  style={styles.chart}
+                />
+              ) : (
+                <View style={styles.noDataContainer}>
+                  <Text style={styles.noDataText}>Aucune donnée disponible</Text>
+                </View>
+              )}
             </View>
 
             <View style={styles.historyCard}>
-              <Text style={styles.historyTitle}>Suivi du poids</Text>
-              {mockWeightData.map((data, index) => (
-                <View key={index} style={styles.historyItem}>
-                  <Text style={styles.historyDate}>
-                    {new Date(data.date).toLocaleDateString("fr-FR", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric"
-                    })}
-                  </Text>
-                  <Text style={styles.weightValue}>{data.weight} kg</Text>
-                </View>
-              ))}
+              <View style={styles.historyHeader}>
+                <Text style={styles.historyTitle}>Suivi du poids</Text>
+                <TouchableOpacity 
+                  style={styles.addButton}
+                  onPress={() => setModalVisible(true)}
+                >
+                  <MaterialCommunityIcons name="plus" size={24} color="#3b82f6" />
+                </TouchableOpacity>
+              </View>
+              
+              {weightHistory.length > 0 ? (
+                weightHistory.map((data, index) => (
+                  <View key={index} style={styles.historyItem}>
+                    <Text style={styles.historyDate}>
+                      {new Date(data.date).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric"
+                      })}
+                    </Text>
+                    <Text style={styles.weightValue}>{data.weight} kg</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noDataText}>Aucun poids enregistré</Text>
+              )}
             </View>
           </>
         )}
       </ScrollView>
+
+      {/* Modal pour ajouter un nouveau poids */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Ajouter un nouveau poids</Text>
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Poids en kg (ex: 75.5)"
+              keyboardType="numeric"
+              value={newWeight}
+              onChangeText={setNewWeight}
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Annuler</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleAddWeight}
+              >
+                <Text style={[styles.modalButtonText, styles.saveButtonText]}>Enregistrer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -231,6 +388,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#6b7280",
   },
   header: {
     padding: 16,
@@ -326,10 +492,18 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  historyHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
   historyTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 16,
+  },
+  addButton: {
+    padding: 4,
   },
   historyItem: {
     flexDirection: "row",
@@ -369,5 +543,81 @@ const styles = StyleSheet.create({
   },
   negativeChange: {
     color: "#ef4444", // rouge
+  },
+  noDataContainer: {
+    height: 220,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noDataText: {
+    fontSize: 16,
+    color: "#6b7280",
+    textAlign: "center",
+    marginVertical: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  modalButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 4,
+  },
+  cancelButton: {
+    backgroundColor: "#f3f4f6",
+  },
+  saveButton: {
+    backgroundColor: "#3b82f6",
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1f2937",
+  },
+  saveButtonText: {
+    color: "#fff",
+  },
+  exerciseItem: {
+    marginLeft: 8,
+    marginTop: 4,
+  },
+  exercisePause: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontStyle: 'italic',
   },
 });

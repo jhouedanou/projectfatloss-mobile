@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from "react-native";
-import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { days, Exercise } from "../../services/WorkoutData";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getWorkoutStats } from "../../services/storage";
+import { days } from "../../services/workoutData";
 
 export default function HomeScreen() {
   // État pour suivre le jour actuel
   const [currentDay, setCurrentDay] = useState(0);
   const [fatBurnerMode, setFatBurnerMode] = useState(false);
+  const [stats, setStats] = useState({
+    totalSessions: 0,
+    totalCalories: 0,
+    totalWeightLifted: 0
+  });
 
   // Déterminer automatiquement le jour actuel (pour synchroniser avec l'écran des séances)
   useEffect(() => {
@@ -30,6 +36,19 @@ export default function HomeScreen() {
       pathname: "/step-workout",
       params: { dayIndex: currentDay.toString() }
     });
+  };
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const workoutStats = await getWorkoutStats();
+      setStats(workoutStats);
+    } catch (error) {
+      console.error("Erreur lors du chargement des stats:", error);
+    }
   };
 
   return (
@@ -66,15 +85,15 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Résumé</Text>
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>12</Text>
+            <Text style={styles.statValue}>{stats.totalSessions}</Text>
             <Text style={styles.statLabel}>Séances</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>4500</Text>
+            <Text style={styles.statValue}>{stats.totalCalories}</Text>
             <Text style={styles.statLabel}>Calories</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>320 kg</Text>
+            <Text style={styles.statValue}>{Math.round(stats.totalWeightLifted)} kg</Text>
             <Text style={styles.statLabel}>Soulevé</Text>
           </View>
         </View>
